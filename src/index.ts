@@ -47,18 +47,22 @@ export default {
         }
     },
     updateTestExecutionResults: async (options: TestExecutionResults) => {
-        const defaults = {
-            jiraUsername: process.env.JIRA_USERNAME,
-            jiraPassword: process.env.JIRA_PASSWORD
+        try {
+            const defaults = {
+                jiraUsername: process.env.JIRA_USERNAME,
+                jiraPassword: process.env.JIRA_PASSWORD
+            }
+    
+            const inputOptions = {
+                ...defaults,
+                ...options
+            }
+    
+            const opts = await generateInputs(inputOptions);
+    
+            await updateTestExecutionResults(opts);
+        } catch (error) {
+            return;
         }
-
-        const inputOptions = {
-            ...defaults,
-            ...options
-        }
-
-        const opts = await generateInputs(inputOptions);
-
-        await updateTestExecutionResults(opts);
     }
 }

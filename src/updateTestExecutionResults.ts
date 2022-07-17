@@ -79,7 +79,7 @@ export const updateTestExecutionResults = async (options: TestExecutionResults) 
 
         logger.info('XRAY: Test Execution Result update process completed...');
     } catch (error) {
-        logger.error(`${error.message}`);
+        logger.error(`XRAY: ${error.message}`);
         return;
     }
-} 
+}
