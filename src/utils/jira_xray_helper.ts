@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { requestHelper } from "./request_helper";
+import {requestHelper} from './request_helper';
 
 export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requestHeaders: object) => {
 
@@ -8,19 +8,19 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     const issueTypeResponse = await requestHelper.get(issueTypeUrl, requestHeaders);
 
     // Returns the Id which is used to create Jira Tickets with issue type as Xray Tests
-    const issueTypeId = _.get(_.find(issueTypeResponse, { "name": "Xray Test" }), 'id');
+    const issueTypeId = _.get(_.find(issueTypeResponse, {'name': 'Xray Test'}), 'id');
 
     // Returns the Id which is used to create Jira Tickets with issue type as Test Set
-    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, { "name": "Test Set" }), 'id');
+    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, {'name': 'Test Set'}), 'id');
 
     const issueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${issueTypeId}`;
     const issueMetaDataResponse = await requestHelper.get(issueMetaDataUrl, requestHeaders);
 
-    const { issuetypes } = issueMetaDataResponse.projects[0];
+    const {issuetypes} = issueMetaDataResponse.projects[0];
 
-    const fields = _.get(issuetypes[0], "fields");
+    const fields = _.get(issuetypes[0], 'fields');
 
-    const schemaMapping = _.omit(_.invert(_.mapValues(fields, 'schema.custom')), 'undefined'); 
+    const schemaMapping = _.omit(_.invert(_.mapValues(fields, 'schema.custom')), 'undefined');
 
     // Returns the Field Id which is used to specify the type of Xray Tests like Manual / Cucumber / Generic
     const xrayTestTypeId_key = schemaMapping['com.xpandit.plugins.xray:test-type-custom-field'];
@@ -29,10 +29,10 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     const xrayTestTypeId_allowedValues = _.get(fields, `${xrayTestTypeId_key}.allowedValues`);
 
     // Returns the value which needs to be mapped with ${xrayTestTypeId_key}. Value here is hardcoded as Cucumber, since we create xray tests for cucumber tests.
-    const xrayTestTypeId_value = _.pick(_.find(xrayTestTypeId_allowedValues, { value: 'Cucumber' }), 'id');
+    const xrayTestTypeId_value = _.pick(_.find(xrayTestTypeId_allowedValues, {value: 'Cucumber'}), 'id');
 
     const xrayTestType = {
-        [xrayTestTypeId_key]: xrayTestTypeId_value,
+        [xrayTestTypeId_key]: xrayTestTypeId_value
     }
 
     // Returns the Field Id which is used to specify the type of Cucumber Tests either Scenario / Scenario_Outline
@@ -42,10 +42,10 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     const xrayScenarioTypeId_allowedValues = _.get(fields, `${xrayScenarioTypeId_key}.allowedValues`);
 
     // Returns the id value for test type scenario
-    const scenario = _.get(_.find(xrayScenarioTypeId_allowedValues, { value: 'Scenario' }), 'id');
+    const scenario = _.get(_.find(xrayScenarioTypeId_allowedValues, {value: 'Scenario'}), 'id');
 
     // Returns the id value for test type scenario outline
-    const scenarioOutline = _.get(_.find(xrayScenarioTypeId_allowedValues, { value: 'Scenario Outline' }), 'id');
+    const scenarioOutline = _.get(_.find(xrayScenarioTypeId_allowedValues, {value: 'Scenario Outline'}), 'id');
 
     const xrayScenarioType = {
         id: xrayScenarioTypeId_key,
@@ -55,22 +55,22 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
 
     // Returns the Field Id which is used to map the Gherkin Steps
     const xrayStepId = schemaMapping['com.xpandit.plugins.xray:steps-editor-custom-field'];
-    
-    const { priority } = fields;
+
+    const {priority} = fields;
 
     // Returns all allowedValues for ${priority}
     const priority_allowedValues = _.get(priority, 'allowedValues');
 
     // Returns the id value for medium priority
-    const priorityValue = _.get(_.find(priority_allowedValues, { name: 'Medium' }), 'id')
+    const priorityValue = _.get(_.find(priority_allowedValues, {name: 'Medium'}), 'id')
 
     const testSetIssueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${testSetIssuetypeId}`;
     const testSetIssueMetaDataResponse = await requestHelper.get(testSetIssueMetaDataUrl, requestHeaders);
-    
-    const testSetIssuetypes = _.get(testSetIssueMetaDataResponse.projects[0], 'issuetypes');
-    const testSetIssueFields = _.get(testSetIssuetypes[0], "fields");
 
-    const testSetIssueSchemaMapping = _.omit(_.invert(_.mapValues(testSetIssueFields, 'schema.custom')), 'undefined'); 
+    const testSetIssuetypes = _.get(testSetIssueMetaDataResponse.projects[0], 'issuetypes');
+    const testSetIssueFields = _.get(testSetIssuetypes[0], 'fields');
+
+    const testSetIssueSchemaMapping = _.omit(_.invert(_.mapValues(testSetIssueFields, 'schema.custom')), 'undefined');
 
     // Returns the Field Id which is used to map Xray Tests to Test Set
     const xrayTestSetId = testSetIssueSchemaMapping['com.xpandit.plugins.xray:test-sets-tests-custom-field'];
@@ -117,7 +117,7 @@ export const getExistingTickets = async (jiraHost: string, jiraProject: string, 
     }
 
     const issues = _.flattenDeep(collectiveResponse);
-  
+
     return Promise.resolve(issues.map((issue) => {
         if (issue.fields[scenarioId]) {
             return ({
@@ -145,7 +145,7 @@ export const updateExistingTicket = async (jiraHost: string, issueId: string, bo
     await requestHelper.put(url, body, requestHeaders);
 }
 
-export const getTransitionId =async (jiraHost: string, issueId: string, transitionName: string, requestHeaders: object) => {
+export const getTransitionId = async (jiraHost: string, issueId: string, transitionName: string, requestHeaders: object) => {
     const url = `https://${jiraHost}/rest/api/2/issue/${issueId}/transitions`;
     const response = await requestHelper.get(url, requestHeaders);
     const {transitions} = response;

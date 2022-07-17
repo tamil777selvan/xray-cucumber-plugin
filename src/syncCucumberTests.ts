@@ -1,16 +1,16 @@
 import _ from 'lodash';
 
 import logger from './utils/logger';
-import { Options } from './types/types';
+import {Options} from './types/types';
 
 import generateFeaturesToImport from './utils/featureFileParser';
-import { getXrayFieldId, getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, openClosedTicket, closeExistingTicket } from './utils/jira_xray_helper';
+import {getXrayFieldId, getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, openClosedTicket, closeExistingTicket} from './utils/jira_xray_helper';
 
-export const importCucumberTests = async (options: Options) => {
+export const syncCucumberTests = async (options: Options) => {
     try {
-        logger.info('XRAY: Cucumber Features Import Task Started...');
+        logger.info('XRAY: Process started to sync Cucumber Test Cases...');
         // @ts-ignore
-        const featureData = await generateFeaturesToImport(options.featureFolderPath, options.featureFolderFilter, options.featureTagFilter);  
+        const featureData = await generateFeaturesToImport(options.featureFolderPath, options.featureFolderFilter, options.featureTagFilter);
 
         const headers = {
             'Authorization': `Basic ${Buffer.from(`${options.jiraUsername}:${options.jiraPassword}`).toString('base64')}`
@@ -22,14 +22,14 @@ export const importCucumberTests = async (options: Options) => {
         const existingTickets = _.remove(await getExistingTickets(options.jiraHost, options.jiraProject, xrayFieldId.xrayScenarioType.id, xrayFieldId.xrayStepId, headers));
 
         for await (const data of featureData) {
-            const { scenarioType, scenarioName, tags, steps } = data;
+            const {scenarioType, scenarioName, tags, steps} = data;
             const optimisedScenarioName = scenarioName.toString().trim().replace(/[^a-zA-Z0-9-:,() ]/g, '');
             const labels = _.remove(tags.split(' ')).map((tag: string) => tag.substring(1)).sort();
-            const labelsToAdd: any = labels.map((label) => ({ add: label }));
+            const labelsToAdd: any = labels.map((label) => ({add: label}));
 
             const scenarioId = scenarioType.toLowerCase() === 'scenario outline' ? xrayFieldId.xrayScenarioType.scenarioOutline : xrayFieldId.xrayScenarioType.scenario;
 
-            const isTicketExists = _.filter(existingTickets, { summary: optimisedScenarioName });
+            const isTicketExists = _.filter(existingTickets, {summary: optimisedScenarioName});
             const existingIssueId = _.map(isTicketExists, 'issueId').toString();
 
             if (isTicketExists.length === 0) {
@@ -59,7 +59,7 @@ export const importCucumberTests = async (options: Options) => {
                 const response = await createNewTicket(options.jiraHost, body, headers);
                 logger.info(response);
             } else if (isTicketExists.length === 1) {
-                const labelsToRemove = _.flattenDeep(_.map(isTicketExists, 'labels')).map((label) => ({ remove: label }));
+                const labelsToRemove = _.flattenDeep(_.map(isTicketExists, 'labels')).map((label) => ({remove: label}));
                 const existingLabels = _.flattenDeep(_.map(isTicketExists, 'labels')).sort();
                 const existingSteps = _.flattenDeep(_.map(isTicketExists, 'cucumberSteps'));
                 const existingScenarioId = _.flattenDeep(_.map(isTicketExists, 'scenarioId'));
@@ -81,7 +81,7 @@ export const importCucumberTests = async (options: Options) => {
                     logger.info(`XRAY: Skipping ticket modifications for ${_.map(isTicketExists, 'key').join(', ')} as it's already in updated state...`);
                 }
                 const existingStatus: any = _.flattenDeep(_.map(isTicketExists, 'issueStatus'));
-                
+
                 if (existingStatus.includes('Closed')) {
                     const inUseTransitionId = await getTransitionId(options.jiraHost, existingIssueId, 'In Use', headers);
                     const body = {
@@ -136,7 +136,7 @@ export const importCucumberTests = async (options: Options) => {
         if (existingTickets.length > 0) {
             const ticketsToClose = _.map(existingTickets, 'key');
             for await (const ticket of ticketsToClose) {
-                const { issueStatus }: any = _.filter(existingTickets, { key: ticket })[0];
+                const {issueStatus}: any = _.filter(existingTickets, {key: ticket})[0];
                 if (issueStatus !== 'Closed') {
                     const closedTransitionId = await getTransitionId(options.jiraHost, ticket, 'Closed', headers);
                     const body = {
@@ -166,7 +166,7 @@ export const importCucumberTests = async (options: Options) => {
             }
         }
 
-        logger.info('XRAY: Cucumber Features Import Task Completed...')
+        logger.info('XRAY: Cucumber Test Cases Syncing process completed...')
 
     } catch (error) {
         logger.error(`${error.message}`);

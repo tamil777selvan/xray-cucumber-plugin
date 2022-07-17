@@ -1,6 +1,6 @@
 export interface Options {
     /**
-     * Root folder path where the feature file lies
+     * Root folder path where the feature file is located
     */
     featureFolderPath: string;
     /**
@@ -9,7 +9,7 @@ export interface Options {
     */
     featureFolderFilter?: string;
     /**
-     * Filter features based on tag conditions
+     * Filter features based on tag expressions
      * @default ''
     */
     featureTagFilter?: string;

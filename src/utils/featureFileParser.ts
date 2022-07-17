@@ -4,8 +4,8 @@ import path from 'path';
 import denodeify from 'denodeify';
 import recursiveReadDir from 'recursive-readdir';
 
-import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin';
-import { IdGenerator } from '@cucumber/messages';
+import {AstBuilder, GherkinClassicTokenMatcher, Parser} from '@cucumber/gherkin';
+import {IdGenerator} from '@cucumber/messages';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
 const lineDelimiter = '\n';
@@ -120,7 +120,7 @@ const parseFeatureFiles = async (files: string[]) => {
     return _.flattenDeep(parsedData);
 };
 
-const generateFeaturesToImport = async (featureFilePath: string, fileFilters: string, tagFilter: string) => {        
+const generateFeaturesToImport = async (featureFilePath: string, fileFilters: string, tagFilter: string) => {
     const basePath = path.resolve(featureFilePath);
     // @ts-ignore
     const files: string[] = await readdir(path.resolve(basePath), ['!*.feature']);
@@ -130,7 +130,7 @@ const generateFeaturesToImport = async (featureFilePath: string, fileFilters: st
     if (optimisedFiles.length > 0) {
         const parsedData: any = await parseFeatureFiles(optimisedFiles.sort());
         const scenarioName = parsedData.map((data: any) => data.scenarioName.replace(/[^a-zA-Z0-9-:,() ]/g, ''));
-         // @ts-ignore
+        // @ts-ignore
         const nonUniqueScenarioName = _.filter(scenarioName, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
         const noScenarioNameLength = _.filter(scenarioName, (name) => name.length > 250);
         if (nonUniqueScenarioName.length > 0) {
@@ -146,19 +146,19 @@ const generateFeaturesToImport = async (featureFilePath: string, fileFilters: st
 
         const outputParsedData: any = _.remove(parsedData.map((data: any) => {
             const tags = data.tags.split(' ');
-            const tagExpression =  TagExpressionParser(tagFilter);
+            const tagExpression = TagExpressionParser(tagFilter);
             if (tagExpression.evaluate(tags)) {
                 return data;
             } else {
                 return undefined;
             }
         }));
-    
+
         return outputParsedData;
     } else {
         logger.error('XRAY: Given path does not have any feature files...');
         throw new Error('XRAY: Fix the feature folder path to proceed...');
-    }  
+    }
 };
 
 

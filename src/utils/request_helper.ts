@@ -53,11 +53,9 @@ const put = async (url: string, body: object | string = {}, headers: object = {}
             }
         })
         .catch((error) => {
-            console.log(error);
-            
             const errorMessage = (error.statusCode || error.status) ? `statusCode ${error.statusCode || error.status}` : `errorCode ${error.code}`
             reject(`XRAY: Request API failed with ${errorMessage} for PUT method`);
         });
 });
 
-export const requestHelper = { get, post, put };
+export const requestHelper = {get, post, put};

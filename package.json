@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint '**/*.ts' --max-warnings 0 --fix"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,10 @@
     "@cucumber/gherkin": "^24.0.0",
     "@cucumber/messages": "^19.1.2",
     "@cucumber/tag-expressions": "^4.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
     "denodeify": "^1.2.1",
+    "eslint": "^8.20.0",
     "fs": "^0.0.1-security",
     "lodash": "^4.17.21",
     "path": "^0.12.7",

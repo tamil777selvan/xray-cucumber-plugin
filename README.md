@@ -99,3 +99,14 @@ XrayCucumberPlugin.init(options);
 
 **Note :** `testSetMappingDetails` object can have "n number" of nested objects with it's defined structure.
 
+## Debugging
+
+Since this plugin consumes JIRA Rest API's to operate, those API logs are enabled only in debugging mode. 
+
+The debugging mode doens't expose the endpoint details, rather just console the statuscode and the method of API call made.
+
+To enable the debugging logs, below environment variable should be turned on as,
+
+```bash
+export XRAY_CUCUMBER_PLUGIN_DEBUG=true
+```

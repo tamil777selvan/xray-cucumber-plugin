@@ -1,7 +1,7 @@
-import { Options } from './types/types';
+import {Options} from './types/types';
 
-import { importCucumberTests } from './importCucumberTests';
-import { updateTestSetMappings } from './updateTestSetMappings';
+import {syncCucumberTests} from './syncCucumberTests';
+import {syncTestSetMappings} from './syncTestSetMappings';
 
 export default {
     init: async (options: Options) => {
@@ -17,10 +17,10 @@ export default {
             ...options
         }
 
-        await importCucumberTests(inputOptions);
+        await syncCucumberTests(inputOptions);
 
         if (inputOptions.updateTestSetMappings) {
-            await updateTestSetMappings(inputOptions);
+            await syncTestSetMappings(inputOptions);
         }
     }
 }
