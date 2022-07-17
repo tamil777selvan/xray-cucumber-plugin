@@ -4,8 +4,8 @@ import path from 'path';
 import denodeify from 'denodeify';
 import recursiveReadDir from 'recursive-readdir';
 
-import {AstBuilder, GherkinClassicTokenMatcher, Parser} from '@cucumber/gherkin';
-import {IdGenerator} from '@cucumber/messages';
+import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin';
+import { IdGenerator } from '@cucumber/messages';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
 const lineDelimiter = '\n';
@@ -24,31 +24,31 @@ const parseFeatureFiles = async (files: string[]) => {
         const gherkinParser = new Parser(new AstBuilder(IdGenerator.incrementing()), new GherkinClassicTokenMatcher());
         const gherkinParsedData: any = gherkinParser.parse(rawData);
         let featureLevelTags = '';
-        gherkinParsedData.feature.tags.forEach((tagDetail: {name: any;}) => {
+        gherkinParsedData.feature.tags.forEach((tagDetail: { name: any; }) => {
             featureLevelTags += `${tagDetail.name} `;
         });
         let backgroundSteps = '';
         gherkinParsedData.feature.children.forEach((featureChild: any) => {
             let isBackground = false;
             let scenarioLevelTags = '';
-            let scenarios: {scenarioType: string; scenarioName: string; tags: string; steps: string;}[] = [];
+            let scenarios: { scenarioType: string; scenarioName: string; tags: string; steps: string; }[] = [];
             if (featureChild.background) {
                 isBackground = true;
-                featureChild.background.steps.forEach((step: {keyword: any; text: any;}) => {
+                featureChild.background.steps.forEach((step: { keyword: any; text: any; }) => {
                     backgroundSteps += stepDelimiter;
                     backgroundSteps += step.keyword + step.text + lineDelimiter;
                 });
             }
             if (featureChild.scenario) {
                 let steps = '';
-                const examplesArray: ({[s: string]: unknown;} | ArrayLike<unknown>)[] = [];
+                const examplesArray: ({ [s: string]: unknown; } | ArrayLike<unknown>)[] = [];
                 let exampleHeaders: any[] = [];
                 const exampleSection: any[] = [];
                 if (featureChild.scenario.examples) {
-                    featureChild.scenario.examples.forEach((examples: {tableHeader: {cells: any[];}; tableBody: any[];}) => {
+                    featureChild.scenario.examples.forEach((examples: { tableHeader: { cells: any[]; }; tableBody: any[]; }) => {
                         exampleHeaders = examples.tableHeader.cells.map((value) => value.value);
                         examples.tableBody.forEach((exampleBody) => {
-                            exampleSection.push(exampleBody.cells.map((value: {value: any;}) => value.value));
+                            exampleSection.push(exampleBody.cells.map((value: { value: any; }) => value.value));
                         });
                     });
                     exampleSection.forEach((value) => {
@@ -62,23 +62,23 @@ const parseFeatureFiles = async (files: string[]) => {
                 const scenarioArray: any = [];
                 if (examplesArray.length > 0) {
                     examplesArray.forEach((example) => {
-                        let scenarioName = featureChild.scenario.name.toString();
+                        let scenarioName = featureChild.scenario.name.toString().substring(0, featureChild.scenario.name.toString().indexOf('(Example -')).trim();
                         scenarioName += ` (Example - ${JSON.stringify(example)})`;
-                        scenarioName = scenarioName.toString().replace(/[^a-zA-Z0-9-:,() ]/g, '');
+                        scenarioName = scenarioName.toString().replace(/[{}]/g, '');
                         scenarioArray.push(`${lineDelimiter} ${featureChild.scenario.keyword}: ${scenarioName}`);
                     });
                 } else {
                     scenarioArray.push(`${lineDelimiter} ${featureChild.scenario.keyword}: 
-                    ${featureChild.scenario.name.toString().substring(featureChild.scenario.name.toString().indexOf(' ')).trim()}`);
+                    ${featureChild.scenario.name.toString().substring(featureChild.scenario.name.toString()).trim()}`);
                 }
-                featureChild.scenario.tags.forEach((tagDetail: {name: any;}) => {
+                featureChild.scenario.tags.forEach((tagDetail: { name: any; }) => {
                     scenarioLevelTags += `${tagDetail.name} `;
                 });
-                featureChild.scenario.steps.forEach((step: {keyword: string; text: string; dataTable: {rows: any[];};}) => {
+                featureChild.scenario.steps.forEach((step: { keyword: string; text: string; dataTable: { rows: any[]; }; }) => {
                     steps = steps + stepDelimiter + step.keyword + step.text + lineDelimiter;
                     if (step.dataTable) {
                         step.dataTable.rows.forEach((dataTableValue) => {
-                            dataTableValue.cells.forEach((dataTableCellValue: {value: any;}) => {
+                            dataTableValue.cells.forEach((dataTableCellValue: { value: any; }) => {
                                 steps = `${steps + stepDelimiter}|${dataTableCellValue.value}`;
                             });
                             steps = `${steps}|${lineDelimiter}`;

@@ -58,4 +58,4 @@ const put = async (url: string, body: object | string = {}, headers: object = {}
         });
 });
 
-export const requestHelper = {get, post, put};
+export const requestHelper = { get, post, put };
