@@ -32,7 +32,7 @@ export default {
 
             const inputOptions = {
                 ...defaults,
-                ...options,
+                ...options
             }
 
             const opts = await generateInputs(inputOptions);
@@ -54,7 +54,7 @@ export default {
 
         const inputOptions = {
             ...defaults,
-            ...options,
+            ...options
         }
 
         const opts = await generateInputs(inputOptions);
