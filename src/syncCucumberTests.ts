@@ -11,7 +11,7 @@ export const syncCucumberTests = async (options: Options) => {
     try {
         logger.info('XRAY: Process started to sync Cucumber Test Cases...');
 
-        const featureData = await generateFeaturesToImport(options.featureFolderPath, options.featureFolderFilter, options.featureTagFilter);
+        const featureData = await generateFeaturesToImport(options.featureFolderPath, options.featureFolderFilter, options.featureTagFilter, options.scenarioDescriptionRegex, options.scenarioDescriptionRegexReplaceValue);
 
         const existingTickets = _.remove(await getExistingTickets(options.jiraHost, options.jiraProject, options.xrayScenarioType.id, options.xrayStepId, options.headers));
 

@@ -27,7 +27,9 @@ export default {
                 featureTagFilter: '',
                 jiraUsername: process.env.JIRA_USERNAME,
                 jiraPassword: process.env.JIRA_PASSWORD,
-                updateTestSetMappings: false
+                updateTestSetMappings: false,
+                scenarioDescriptionRegex: undefined,
+                scenarioDescriptionRegexReplaceValue: ''
             }
 
             const inputOptions = {

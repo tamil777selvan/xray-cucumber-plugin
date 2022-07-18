@@ -75,8 +75,10 @@ import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
 const options = {
 	featureFolderPath:  './features',
-	featureFileFilter:  'OptimisedE2EPack',
+	featureFolderFilter:  'OptimisedE2EPack',
 	featureTagFilter:  '',
+	scenarioDescriptionRegex: new RegExp(/TC_\d\d /gm),
+    scenarioDescriptionRegexReplaceValue: 'XCP ',
 	jiraHost:  'jira.********.com',
 	jiraProject:  'JIRA',
 	jiraUsername:  'demo.jira',
@@ -101,6 +103,8 @@ XrayCucumberPlugin.init(options);
 | featureFolderPath | Relative path of Root Folder which holds the Feature Files |
 | featureFolderFilter | Once the Feature files are loaded from ${featureFolderPath}, filter files which are specific from given folder |
 | featureTagFilter | Filter Scenario's based on the given tagExpression | 
+| scenarioDescriptionRegex | Find the specific content from scenario's description and replace it with value passed in ${scenarioDescriptionRegexReplaceValue} | 
+| scenarioDescriptionRegexReplaceValue | Value to be replaced for found ${scenarioDescriptionRegex} |
 | jiraHost | JIRA endpoint |
 | jiraProject | JIRA Key of the project to interact with |
 | jiraUsername | Authorized JIRA Username with permissions over the selected ProjectKey |
@@ -114,6 +118,7 @@ XrayCucumberPlugin.init(options);
 | :---:  | :---: |
 | featureFolderFilter | '/' |
 | featureTagFilter | ' ' |
+| scenarioDescriptionRegex | undefined |
 | jiraUsername | process.env.JIRA_USERNAME |
 | jiraPassword | process.env.JIRA_PASSWORD |
 | updateTestSetMappings | false |

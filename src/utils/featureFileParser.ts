@@ -16,7 +16,7 @@ const readFile = denodeify(fs.readFile);
 
 import logger from './logger';
 
-const parseFeatureFiles = async (files: string[]) => {
+const parseFeatureFiles = async (files: string[], scenarioDescriptionRegex: any, scenarioDescriptionRegexReplaceValue: any) => {
     const parsedData: any = [];
     for await (const file of files) {
         // @ts-ignore
@@ -65,11 +65,17 @@ const parseFeatureFiles = async (files: string[]) => {
                         let scenarioName = featureChild.scenario.name.toString().substring(0, featureChild.scenario.name.toString().indexOf('(Example -')).trim();
                         scenarioName += ` (Example - ${JSON.stringify(example)})`;
                         scenarioName = scenarioName.toString().replace(/[{}]/g, '');
+                        if (scenarioDescriptionRegex) {
+                            scenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                        }
                         scenarioArray.push(`${lineDelimiter} ${featureChild.scenario.keyword}: ${scenarioName}`);
                     });
                 } else {
-                    scenarioArray.push(`${lineDelimiter} ${featureChild.scenario.keyword}: 
-                    ${featureChild.scenario.name.toString().substring(featureChild.scenario.name.toString()).trim()}`);
+                    let scenarioName = `${featureChild.scenario.name.toString().substring(featureChild.scenario.name.toString()).trim()}`;
+                    if (scenarioDescriptionRegex) {                                                
+                        scenarioName = scenarioName.toString().replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                    }
+                    scenarioArray.push(`${lineDelimiter} ${featureChild.scenario.keyword}: ${scenarioName}`);
                 }
                 featureChild.scenario.tags.forEach((tagDetail: { name: any; }) => {
                     scenarioLevelTags += `${tagDetail.name} `;
@@ -116,11 +122,11 @@ const parseFeatureFiles = async (files: string[]) => {
                 parsedData.push(scenarios);
             }
         });
-    }
+    }    
     return _.flattenDeep(parsedData);
 };
 
-const generateFeaturesToImport = async (featureFilePath: string, fileFilters: string, tagFilter: string) => {
+const generateFeaturesToImport = async (featureFilePath: string, fileFilters: string, tagFilter: string, scenarioDescriptionRegex: any, scenarioDescriptionRegexReplaceValue: any) => {    
     const basePath = path.resolve(featureFilePath);
     // @ts-ignore
     const files: string[] = await readdir(path.resolve(basePath), ['!*.feature']);
@@ -128,7 +134,7 @@ const generateFeaturesToImport = async (featureFilePath: string, fileFilters: st
     optimisedFiles.map((file) => (logger.info(`XRAY: File "${file.substring(file.indexOf(featureFilePath))}" imported...`)));
 
     if (optimisedFiles.length > 0) {
-        const parsedData: any = await parseFeatureFiles(optimisedFiles.sort());
+        const parsedData: any = await parseFeatureFiles(optimisedFiles.sort(), scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
         const scenarioName = parsedData.map((data: any) => data.scenarioName.replace(/[^a-zA-Z0-9-:,() ]/g, ''));
         // @ts-ignore
         const nonUniqueScenarioName = _.filter(scenarioName, (val, i, iteratee) => _.includes(iteratee, val, i + 1));

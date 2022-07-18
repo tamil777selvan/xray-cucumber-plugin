@@ -14,6 +14,16 @@ export interface Options {
     */
     featureTagFilter?: string;
     /**
+     * Regex Pattern Used to replace specific text from scenario's description
+     * @default undefined
+    */
+    scenarioDescriptionRegex?: RegExp;
+    /**
+     * Value used to get replaced for the identified regex patter from ${scenarioDescriptionRegex}
+     * @default ''
+    */
+    scenarioDescriptionRegexReplaceValue?: string;
+    /**
      * Host address of JIRA
     */
     jiraHost: string;
