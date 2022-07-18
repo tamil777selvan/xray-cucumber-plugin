@@ -14,7 +14,7 @@ A Customised Xray Cucumber plugin that provides feature to **sync "Xray Tests" &
 - Lints for scenario's description length if more than 250 chars.
 - Filter tests which needs to synced based on "cucumber tags" or specific "folder" name.
 - Unique split of Xray Tests when mapping to Xray Test Sets.
-- Update test result to the execution tickets.
+- Update test result to the execution tickets from Cucumber JSON reports / parsed test result list.
 
 ## Installation
 
@@ -110,7 +110,7 @@ XrayCucumberPlugin.init(options);
 | jiraUsername | Authorized JIRA Username with permissions over the selected ProjectKey |
 | jiraPassword | JIRA Password of given ${jiraUsername} |
 | updateTestSetMappings | Boolean param, which takes care of mapping Xray Tests with Xray Tests Sets |
-| testSetMappingDetails| Mapping details of the tests and test set based on cucumber tagExpression |
+| testSetMappingDetails| Mapping details of the tests and test set based on cucumber tagExpression. Structure can be found [here](#structure-of-testsetmappingdetails) |
 
 ## Default Options
 
@@ -180,6 +180,7 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | jiraPassword | JIRA Password of given ${jiraUsername} |
 | testExecutionIds | List of Xray Test Execution Id's to which result needs to be updated |
 | cucumberJsonReportFolder | Root folder path where the cucumber JSON report is stored |
+| parsedTestResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-parsedTestResultDetails) |
 
 **Note :** Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
 
@@ -189,8 +190,21 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | :---:  | :---: |
 | jiraUsername | process.env.JIRA_USERNAME |
 | jiraPassword | process.env.JIRA_PASSWORD |
+| parsedTestResultDetails | undefined |
 
 **Note :** Passing options via the `updateTestExecutionResults` function takes precedence and overrides the default values.
+
+## Structure of parsedTestResultDetails
+
+```javascript
+[
+	{'scenario 1': 'PASS'},
+	{'scenario 2': 'PASS'},
+	{'scenario 3': 'FAIL'},
+	{'scenario 4 (Example - title1: <title1>)': 'PASS'}
+]
+```
+**Note :** The status of test result needs to be either "PASS" / "FAIL"
 
 ----
 ----
