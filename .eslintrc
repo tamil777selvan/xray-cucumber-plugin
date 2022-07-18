@@ -62,10 +62,7 @@
       "@typescript-eslint/padding-line-between-statements": "error",
       "@typescript-eslint/no-misused-new": "error",
       "@typescript-eslint/no-use-before-define": "error",
-      "@typescript-eslint/object-curly-spacing": [
-        "error",
-        "never"
-      ],
+      "@typescript-eslint/object-curly-spacing": 0,
       "@typescript-eslint/no-explicit-any": 0,
       "@typescript-eslint/no-namespace": 0,
       "@typescript-eslint/no-empty-interface": 0

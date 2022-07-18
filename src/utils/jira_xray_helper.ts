@@ -1,22 +1,25 @@
 import _ from 'lodash';
 
-import {requestHelper} from './request_helper';
+import { requestHelper } from './request_helper';
 
-export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requestHeaders: object) => {
+export const getXrayFieldIds = async (jiraHost: string, jiraProject: string, requestHeaders: object) => {
 
     const issueTypeUrl = `https://${jiraHost}/rest/api/2/issuetype`;
     const issueTypeResponse = await requestHelper.get(issueTypeUrl, requestHeaders);
 
     // Returns the Id which is used to create Jira Tickets with issue type as Xray Tests
-    const issueTypeId = _.get(_.find(issueTypeResponse, {'name': 'Xray Test'}), 'id');
+    const issueTypeId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test' }), 'id');
 
     // Returns the Id which is used to create Jira Tickets with issue type as Test Set
-    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, {'name': 'Test Set'}), 'id');
+    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Set' }), 'id');
+
+    // Returns the Id which is used to map the test results with the Test Execution ticktes.
+    const testExecutionIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Execution' }), 'id');
 
     const issueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${issueTypeId}`;
     const issueMetaDataResponse = await requestHelper.get(issueMetaDataUrl, requestHeaders);
 
-    const {issuetypes} = issueMetaDataResponse.projects[0];
+    const { issuetypes } = issueMetaDataResponse.projects[0];
 
     const fields = _.get(issuetypes[0], 'fields');
 
@@ -29,7 +32,7 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     const xrayTestTypeId_allowedValues = _.get(fields, `${xrayTestTypeId_key}.allowedValues`);
 
     // Returns the value which needs to be mapped with ${xrayTestTypeId_key}. Value here is hardcoded as Cucumber, since we create xray tests for cucumber tests.
-    const xrayTestTypeId_value = _.pick(_.find(xrayTestTypeId_allowedValues, {value: 'Cucumber'}), 'id');
+    const xrayTestTypeId_value = _.pick(_.find(xrayTestTypeId_allowedValues, { value: 'Cucumber' }), 'id');
 
     const xrayTestType = {
         [xrayTestTypeId_key]: xrayTestTypeId_value
@@ -42,10 +45,10 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     const xrayScenarioTypeId_allowedValues = _.get(fields, `${xrayScenarioTypeId_key}.allowedValues`);
 
     // Returns the id value for test type scenario
-    const scenario = _.get(_.find(xrayScenarioTypeId_allowedValues, {value: 'Scenario'}), 'id');
+    const scenario = _.get(_.find(xrayScenarioTypeId_allowedValues, { value: 'Scenario' }), 'id');
 
     // Returns the id value for test type scenario outline
-    const scenarioOutline = _.get(_.find(xrayScenarioTypeId_allowedValues, {value: 'Scenario Outline'}), 'id');
+    const scenarioOutline = _.get(_.find(xrayScenarioTypeId_allowedValues, { value: 'Scenario Outline' }), 'id');
 
     const xrayScenarioType = {
         id: xrayScenarioTypeId_key,
@@ -56,13 +59,13 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     // Returns the Field Id which is used to map the Gherkin Steps
     const xrayStepId = schemaMapping['com.xpandit.plugins.xray:steps-editor-custom-field'];
 
-    const {priority} = fields;
+    const { priority } = fields;
 
     // Returns all allowedValues for ${priority}
     const priority_allowedValues = _.get(priority, 'allowedValues');
 
     // Returns the id value for medium priority
-    const priorityValue = _.get(_.find(priority_allowedValues, {name: 'Medium'}), 'id')
+    const priorityValue = _.get(_.find(priority_allowedValues, { name: 'Medium' }), 'id')
 
     const testSetIssueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${testSetIssuetypeId}`;
     const testSetIssueMetaDataResponse = await requestHelper.get(testSetIssueMetaDataUrl, requestHeaders);
@@ -75,6 +78,18 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
     // Returns the Field Id which is used to map Xray Tests to Test Set
     const xrayTestSetId = testSetIssueSchemaMapping['com.xpandit.plugins.xray:test-sets-tests-custom-field'];
 
+    const testExecutionIssueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${testExecutionIssuetypeId}`;
+    const testExecutionIssueMetaDataResponse = await requestHelper.get(testExecutionIssueMetaDataUrl, requestHeaders);
+
+    const testExecutionIssuetypes = _.get(testExecutionIssueMetaDataResponse.projects[0], 'issuetypes');
+    const testExecutionIssueFields = _.get(testExecutionIssuetypes[0], 'fields');
+
+    const testExecutionIssueSchemaMapping = _.omit(_.invert(_.mapValues(testExecutionIssueFields, 'schema.custom')), 'undefined');
+
+    // Returns the Field Id which is used to map test execution results to Test Execution ticket
+    const xrayTestExecutionId = testExecutionIssueSchemaMapping['com.xpandit.plugins.xray:testexec-tests-custom-field'];
+
+    // 
     return ({
         issueTypeId,
         xrayTestTypeId: xrayTestTypeId_key,
@@ -82,7 +97,8 @@ export const getXrayFieldId = async (jiraHost: string, jiraProject: string, requ
         xrayScenarioType,
         xrayStepId,
         priority: priorityValue,
-        xrayTestSetId
+        xrayTestSetId,
+        xrayTestExecutionId
     });
 }
 
@@ -148,8 +164,8 @@ export const updateExistingTicket = async (jiraHost: string, issueId: string, bo
 export const getTransitionId = async (jiraHost: string, issueId: string, transitionName: string, requestHeaders: object) => {
     const url = `https://${jiraHost}/rest/api/2/issue/${issueId}/transitions`;
     const response = await requestHelper.get(url, requestHeaders);
-    const {transitions} = response;
-    return Promise.resolve(_.get(_.find(transitions, {name: transitionName}), 'id'));
+    const { transitions } = response;
+    return Promise.resolve(_.get(_.find(transitions, { name: transitionName }), 'id'));
 }
 
 export const openClosedTicket = async (jiraHost: string, issueId: string, body: object, requestHeaders: object) => {
@@ -162,3 +178,14 @@ export const closeExistingTicket = async (jiraHost: string, issueId: string | nu
     await requestHelper.post(url, body, requestHeaders);
 }
 
+export const getTestExecutionIds = async (jiraHost: string, executionId: string, xrayTestExecutionId: string, requestHeaders: object) => {
+    const url = `https://${jiraHost}/rest/api/2/issue/${executionId}`;
+    const response = await requestHelper.get(url, requestHeaders);
+    const testExecutionIds = response.fields[xrayTestExecutionId];
+    return testExecutionIds;
+}
+
+export const updateExecutionResult = async (jiraHost: string, executionId: string, xrayTestStatus: string, requestHeaders: object) => {
+    const url = `https://${jiraHost}/rest/raven/1.0/api/testrun/${executionId}/status?status=${xrayTestStatus}`;
+    await requestHelper.put(url, {}, requestHeaders);
+}

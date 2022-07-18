@@ -14,6 +14,16 @@ export interface Options {
     */
     featureTagFilter?: string;
     /**
+     * Regex Pattern Used to replace specific text from scenario's description
+     * @default undefined
+    */
+    scenarioDescriptionRegex?: RegExp;
+    /**
+     * Value used to get replaced for the identified regex patter from ${scenarioDescriptionRegex}
+     * @default ''
+    */
+    scenarioDescriptionRegexReplaceValue?: string;
+    /**
      * Host address of JIRA
     */
     jiraHost: string;
@@ -41,4 +51,33 @@ export interface Options {
      * @default false
     */
     testSetMappingDetails?: object;
+}
+
+export interface TestExecutionResults {
+    /**
+     * Host address of JIRA
+    */
+    jiraHost: string;
+    /**
+     * JIRA Project Key to which XRAY tests needs to be updated
+    */
+    jiraProject: string;
+    /**
+     * JIRA Username to authenticate
+     * @default process.env.JIRA_USERNAME
+    */
+    jiraUsername?: string;
+    /**
+     * JIRA Password to authenticate
+     * @default process.env.JIRA_PASSWORD
+    */
+    jiraPassword?: string;
+    /**
+     * List of Test Execution Id's to which reports needs to be updated
+    */
+    testExecutionIds: string[];
+    /**
+     * Root Folder path where the cucumber JSON output files are stored
+    */
+    cucumberJsonReportFolder: string
 }
