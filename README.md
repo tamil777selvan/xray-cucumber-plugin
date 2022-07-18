@@ -33,33 +33,33 @@ The main reason for performing this action is, Cucumber's JSON report converts "
 Assume below is the existing approach which we follow,
 
 ```cucumber
-	Feature: Test
+Feature: Test
 
-	Scenario Outline: PreRequisite Document
-		Given ......
-		......
-		......
+Scenario Outline: PreRequisite Document
+	Given ......
+	......
+	......
 
-		Examples:
-		| title1 | title2 |
-		| value0 | value1 |
-		| value2 | value3 |
+	Examples:
+	| title1 | title2 |
+	| value0 | value1 |
+	| value2 | value3 |
 ```
 
 From above code, the description needs to be updated as below,
 
 ```cucumber
-	Feature: Test
+Feature: Test
 
-	Scenario Outline: PreRequisite Document (Example - title1: <title1>, title2: <title2>)
-		Given ......
-		......
-		......
+Scenario Outline: PreRequisite Document (Example - title1: <title1>, title2: <title2>)
+	Given ......
+	......
+	......
 
-		Examples:
-		| title1 | title2 |
-		| value0 | value1 |
-		| value2 | value3 |
+	Examples:
+	| title1 | title2 |
+	| value0 | value1 |
+	| value2 | value3 |
 ```
 With this minor updation to the scenario outline, the Cucumber JSON report has the compiled examples with it and would be more promising while updating tests resulst back to XRAY.
 
