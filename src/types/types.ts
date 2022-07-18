@@ -84,5 +84,5 @@ export interface TestExecutionResults {
      * Root Folder path where the cucumber JSON output files are stored
      * @default undefined
     */
-    testResultDetails?: string[]
+    parsedTestResultDetails?: string[]
 }

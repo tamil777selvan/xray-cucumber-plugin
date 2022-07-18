@@ -180,7 +180,7 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | jiraPassword | JIRA Password of given ${jiraUsername} |
 | testExecutionIds | List of Xray Test Execution Id's to which result needs to be updated |
 | cucumberJsonReportFolder | Root folder path where the cucumber JSON report is stored |
-| testResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-testresultdetails) |
+| parsedTestResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-parsedTestResultDetails) |
 
 **Note :** Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
 
@@ -190,11 +190,11 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | :---:  | :---: |
 | jiraUsername | process.env.JIRA_USERNAME |
 | jiraPassword | process.env.JIRA_PASSWORD |
-| testResultDetails | undefined |
+| parsedTestResultDetails | undefined |
 
 **Note :** Passing options via the `updateTestExecutionResults` function takes precedence and overrides the default values.
 
-## Structure of testResultDetails
+## Structure of parsedTestResultDetails
 
 ```javascript
 [

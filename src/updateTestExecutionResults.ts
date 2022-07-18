@@ -49,8 +49,8 @@ export const updateTestExecutionResults = async (options: TestExecutionResults) 
 
         let testDetails;
 
-        if (options.testResultDetails) {
-            testDetails = options.testResultDetails;
+        if (options.parsedTestResultDetails) {
+            testDetails = options.parsedTestResultDetails;
         } else {
             testDetails = await parseCucumberReports(options.cucumberJsonReportFolder);
         }
