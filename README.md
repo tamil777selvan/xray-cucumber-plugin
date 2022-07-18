@@ -14,7 +14,7 @@ A Customised Xray Cucumber plugin that provides feature to **sync "Xray Tests" &
 - Lints for scenario's description length if more than 250 chars.
 - Filter tests which needs to synced based on "cucumber tags" or specific "folder" name.
 - Unique split of Xray Tests when mapping to Xray Test Sets.
-- Update test result to the execution tickets.
+- Update test result to the execution tickets from Cucumber JSON reports / parsed test result list.
 
 ## Installation
 
@@ -201,9 +201,11 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 	{'scenario 1': 'PASS'},
 	{'scenario 2': 'PASS'},
 	{'scenario 3': 'FAIL'},
-	{'scenario 4': 'PASS'}
+	{'scenario 4 (Example - title1: <title1>)': 'PASS'}
 ]
 ```
+**Note :** The status of test result needs to be either "PASS" / "FAIL"
+
 ----
 ----
 
