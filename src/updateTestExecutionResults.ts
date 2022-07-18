@@ -14,28 +14,32 @@ const readFile = denodeify(fs.readFile);
 import { getExistingTickets, getTestExecutionIds, updateExecutionResult } from './utils/jira_xray_helper';
 
 const parseCucumberReports = async (jsonReportPath: string) => {
-    const basePath = path.resolve(jsonReportPath);
-    const files: string[] = await readdir(path.resolve(basePath), ['!*.json']);
+    try {
+        const basePath = path.resolve(jsonReportPath);
+        const files: string[] = await readdir(path.resolve(basePath), ['!*.json']);
 
-    for await (const file of files) {
-        const rawData = await readFile(file).then((raw: string) => raw);
-        const parsedData = JSON.parse(rawData).map((data) => {
-            const elements = _.get(data, 'elements');
-            const newElements = elements.map((element) => {
-                const scenarioName = _.get(element, 'name');
-                const steps = _.get(element, 'steps');
-                const stepsResult = steps.map((step) => {
-                    return _.get(step, 'result.status');
+        for await (const file of files) {
+            const rawData = await readFile(file).then((raw: string) => raw);
+            const parsedData = JSON.parse(rawData).map((data) => {
+                const elements = _.get(data, 'elements');
+                const newElements = elements.map((element) => {
+                    const scenarioName = _.get(element, 'name');
+                    const steps = _.get(element, 'steps');
+                    const stepsResult = steps.map((step) => {
+                        return _.get(step, 'result.status');
+                    });
+                    let testResult = 'PASS';
+                    if (stepsResult.includes('failed')) {
+                        testResult = 'FAIL';
+                    }
+                    return { [scenarioName]: testResult };
                 });
-                let testResult = 'PASS';
-                if (stepsResult.includes('failed')) {
-                    testResult = 'FAIL';
-                }
-                return { [scenarioName]: testResult };
+                return newElements;
             });
-            return newElements;
-        });
-        return _.flattenDeep(parsedData);
+            return _.flattenDeep(parsedData);
+        }
+    } catch (error) {
+        throw new Error(error);
     }
 }
 
@@ -43,7 +47,13 @@ export const updateTestExecutionResults = async (options: TestExecutionResults) 
     try {
         logger.info('XRAY: Process started to update Test Execution Result...');
 
-        const testDetails = await parseCucumberReports(options.cucumberJsonReportFolder);
+        let testDetails;
+
+        if (options.testResultDetails) {
+            testDetails = options.testResultDetails;
+        } else {
+            testDetails = await parseCucumberReports(options.cucumberJsonReportFolder);
+        }
 
         // Get all tickets
         const existingTickets = _.remove(await getExistingTickets(options.jiraHost, options.jiraProject, options.xrayScenarioType.id, options.xrayStepId, options.headers));

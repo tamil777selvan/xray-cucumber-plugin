@@ -110,7 +110,7 @@ XrayCucumberPlugin.init(options);
 | jiraUsername | Authorized JIRA Username with permissions over the selected ProjectKey |
 | jiraPassword | JIRA Password of given ${jiraUsername} |
 | updateTestSetMappings | Boolean param, which takes care of mapping Xray Tests with Xray Tests Sets |
-| testSetMappingDetails| Mapping details of the tests and test set based on cucumber tagExpression |
+| testSetMappingDetails| Mapping details of the tests and test set based on cucumber tagExpression. Structure can be found [here](#structure-of-testsetmappingdetails) |
 
 ## Default Options
 
@@ -180,6 +180,7 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | jiraPassword | JIRA Password of given ${jiraUsername} |
 | testExecutionIds | List of Xray Test Execution Id's to which result needs to be updated |
 | cucumberJsonReportFolder | Root folder path where the cucumber JSON report is stored |
+| testResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-testresultdetails) |
 
 **Note :** Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
 
@@ -189,9 +190,20 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | :---:  | :---: |
 | jiraUsername | process.env.JIRA_USERNAME |
 | jiraPassword | process.env.JIRA_PASSWORD |
+| testResultDetails | undefined |
 
 **Note :** Passing options via the `updateTestExecutionResults` function takes precedence and overrides the default values.
 
+## Structure of testResultDetails
+
+```javascript
+[
+	{'scenario 1': 'PASS'},
+	{'scenario 2': 'PASS'},
+	{'scenario 3': 'FAIL'},
+	{'scenario 4': 'PASS'}
+]
+```
 ----
 ----
 

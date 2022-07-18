@@ -52,7 +52,8 @@ export default {
         try {
             const defaults = {
                 jiraUsername: process.env.JIRA_USERNAME,
-                jiraPassword: process.env.JIRA_PASSWORD
+                jiraPassword: process.env.JIRA_PASSWORD,
+                testResultDetails: undefined
             }
     
             const inputOptions = {
