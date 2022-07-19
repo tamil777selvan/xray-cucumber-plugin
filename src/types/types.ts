@@ -84,5 +84,10 @@ export interface TestExecutionResults {
      * Parsed tests result details list
      * @default undefined
     */
-    parsedTestResultDetails?: string[]
+    parsedTestResultDetails?: string[],
+    /**
+     * Skip updating execution tickets for failed test cases
+     * @default false
+    */
+   skipUpdatingFailedCase?: boolean
 }

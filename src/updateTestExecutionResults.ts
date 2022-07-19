@@ -55,6 +55,10 @@ export const updateTestExecutionResults = async (options: TestExecutionResults) 
             testDetails = await parseCucumberReports(options.cucumberJsonReportFolder);
         }
 
+        if (options.skipUpdatingFailedCase) {
+            testDetails = _.remove(testDetails, (val) => _.lowerCase(_.values(val).toString()) !== 'fail' );
+        }
+
         // Get all tickets
         const existingTickets = _.remove(await getExistingTickets(options.jiraHost, options.jiraProject, options.xrayScenarioType.id, options.xrayStepId, options.headers));
         const optimisedExistingTickets = existingTickets.map((ticket) => {
