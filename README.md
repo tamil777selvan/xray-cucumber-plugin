@@ -181,8 +181,11 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | testExecutionIds | List of Xray Test Execution Id's to which result needs to be updated |
 | cucumberJsonReportFolder | Root folder path where the cucumber JSON report is stored |
 | parsedTestResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-parsedTestResultDetails) |
+| skipUpdatingFailedCase | Skip the updation of failed test cases to the corresponding test execution tickets |
 
-**Note :** Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
+**Note :** 
+- Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
+- The array list passed in `${parsedTestResultDetails}` takes precedence over `${cucumberJsonReportFolder}`. So, if you wish to update results from Cucumber JSON, try avoiding adding `${parsedTestResultDetails}` to the input param.
 
 ## Default Options
 
@@ -191,6 +194,7 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
 | jiraUsername | process.env.JIRA_USERNAME |
 | jiraPassword | process.env.JIRA_PASSWORD |
 | parsedTestResultDetails | undefined |
+| skipUpdatingFailedCase | false |
 
 **Note :** Passing options via the `updateTestExecutionResults` function takes precedence and overrides the default values.
 
