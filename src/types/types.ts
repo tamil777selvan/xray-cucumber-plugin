@@ -89,5 +89,5 @@ export interface TestExecutionResults {
      * Skip updating execution tickets for failed test cases
      * @default false
     */
-   skipUpdatingFailedCase?: boolean
+    skipUpdatingFailedCase?: boolean
 }
