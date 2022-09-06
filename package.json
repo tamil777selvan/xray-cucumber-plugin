@@ -13,7 +13,10 @@
     "type": "git",
     "url": "git+https://github.com/tamil777selvan/xray-cucumber-plugin.git"
   },
-  "author": "",
+  "author": {
+    "name": "Tamil Selvan",
+    "email": "tamil777selvan@gmail.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tamil777selvan/xray-cucumber-plugin/issues"
