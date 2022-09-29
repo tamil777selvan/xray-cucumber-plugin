@@ -11,10 +11,10 @@ export const getXrayFieldIds = async (jiraHost: string, jiraProject: string, req
     const issueTypeId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test' }), 'id');
 
     // Returns the Id which is used to create Jira Tickets with issue type as Test Set
-    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Set' }), 'id');
+    const testSetIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Set' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Xray Test Set' }), 'id');
 
     // Returns the Id which is used to map the test results with the Test Execution ticktes.
-    const testExecutionIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Execution' }), 'id');
+    const testExecutionIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Execution' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Xray Test Execution' }), 'id');
 
     const issueMetaDataUrl = `https://${jiraHost}/rest/api/2/issue/createmeta?projectKeys=${jiraProject}&expand=projects.issuetypes.fields&issuetypeIds=${issueTypeId}`;
     const issueMetaDataResponse = await requestHelper.get(issueMetaDataUrl, requestHeaders);
