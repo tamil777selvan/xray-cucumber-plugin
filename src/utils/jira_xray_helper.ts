@@ -8,7 +8,7 @@ export const getXrayFieldIds = async (jiraHost: string, jiraProject: string, req
     const issueTypeResponse = await requestHelper.get(issueTypeUrl, requestHeaders);
 
     // Returns the Id which is used to create Jira Tickets with issue type as Xray Tests
-    const issueTypeId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test' }), 'id');
+    const issueTypeId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test' }), 'id') || _.default.get(_.default.find(issueTypeResponse, { 'name': 'Test' }), 'id');
 
     // Returns the Id which is used to create Jira Tickets with issue type as Test Set
     const testSetIssuetypeId = _.get(_.find(issueTypeResponse, { 'name': 'Test Set' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Xray Test Set' }), 'id');
@@ -105,7 +105,7 @@ export const getXrayFieldIds = async (jiraHost: string, jiraProject: string, req
 export const getExistingTickets = async (jiraHost: string, jiraProject: string, scenarioId: string, cucumberStepId: string, requestHeaders: object) => {
     const url = `https://${jiraHost}/rest/api/2/search`;
     const body = {
-        jql: `project = ${jiraProject} AND issuetype = 'Xray Test'`,
+        jql: `project = ${jiraProject} AND (issuetype = 'Xray Test' OR issuetype = 'Test')`,
         fields: [
             'issuetype',
             'status',
