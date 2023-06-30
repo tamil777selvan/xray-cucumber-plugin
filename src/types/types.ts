@@ -1,93 +1,237 @@
-export interface Options {
+export interface JIRA_OPTION {
     /**
-     * Root folder path where the feature file is located
-    */
-    featureFolderPath: string;
+     * Protocol of JIRA.
+     * @default https
+     */
+    jiraProtocol: string;
     /**
-     * Filter feature files only from a specific folder
-     * @default '/'
-    */
-    featureFolderFilter?: string;
-    /**
-     * Filter features based on tag expressions
-     * @default ''
-    */
-    featureTagFilter?: string;
-    /**
-     * Regex Pattern Used to replace specific text from scenario's description
-     * @default undefined
-    */
-    scenarioDescriptionRegex?: RegExp;
-    /**
-     * Value used to get replaced for the identified regex patter from ${scenarioDescriptionRegex}
-     * @default ''
-    */
-    scenarioDescriptionRegexReplaceValue?: string;
-    /**
-     * Host address of JIRA
-    */
+     * Host address of JIRA.
+     */
     jiraHost: string;
     /**
-     * JIRA Project Key to which XRAY tests needs to be updated
-    */
+     * JIRA Project Key to which XRAY tests need to be updated.
+     */
     jiraProject: string;
     /**
-     * JIRA Username to authenticate
+     * JIRA Username for authentication.
      * @default process.env.JIRA_USERNAME
-    */
+     */
     jiraUsername?: string;
     /**
-     * JIRA Password to authenticate
+     * JIRA Password for authentication.
      * @default process.env.JIRA_PASSWORD
-    */
+     */
     jiraPassword?: string;
     /**
-     * Set to true to update tests sets based on the mapping given in testSetMappingDetails
-     * @default false
-    */
-    updateTestSetMappings?: boolean;
+     * JIRA Token for authentication.
+     * @default process.env.JIRA_TOKEN
+     */
+    jiraToken?: string;
     /**
-     * Map Xray Tests to Tests Sets based on tags
-     * @default false
-    */
-    testSetMappingDetails?: object;
+     * Authorization Token
+     * @default null
+     */
+    headers?: {
+        Authorization?: null | string;
+    }
 }
 
-export interface TestExecutionResults {
+interface XRAY_TEST_SET {
     /**
-     * Host address of JIRA
-    */
-    jiraHost: string;
+     * Tag expression with which Xray Tests would be mapped with test sets
+     */
+    tags: string;
     /**
-     * JIRA Project Key to which XRAY tests needs to be updated
-    */
-    jiraProject: string;
+     * List of Xray Test Set Id to which the Xray Tests needs to be added
+     */
+    testSetId: string[];
     /**
-     * JIRA Username to authenticate
-     * @default process.env.JIRA_USERNAME
-    */
-    jiraUsername?: string;
+     * Internal param which holds the mapping details of Xray Test Set Id with Xray Test Case Id
+     */
+    tests?: any[];
+}
+
+export interface XRAY_TEST_SET_MAPPING {
+    [key: string]: XRAY_TEST_SET;
+}
+
+export interface INIT_OPTIONS extends JIRA_OPTION {
     /**
-     * JIRA Password to authenticate
-     * @default process.env.JIRA_PASSWORD
-    */
-    jiraPassword?: string;
+     * Root folder path where the feature files are located
+     */
+    featureFolderPath?: string;
     /**
-     * List of Test Execution Id's to which reports needs to be updated
-    */
-    testExecutionIds: string[];
+     * Filter feature files from a specific folder which should be a child of `featureFolderPath`.
+     * @default '/'
+     */
+    featureFolderFilter?: string;
     /**
-     * Root Folder path where the cucumber JSON output files are stored
-    */
-    cucumberJsonReportFolder?: string,
+     * Filter features based on cucumber tag expressions.
+     * @default ''
+     */
+    featureTagFilter?: string;
     /**
-     * Parsed tests result details list
+     * Regex Pattern used to identify specific text from the scenario's description for replacement.
      * @default undefined
-    */
-    parsedTestResultDetails?: string[],
+     */
+    scenarioDescriptionRegex?: RegExp;
     /**
-     * Skip updating execution tickets for failed test cases
+     * Value to be replaced for the identified regex pattern from `scenarioDescriptionRegex`.
+     * @default undefined
+     */
+    scenarioDescriptionRegexReplaceValue?: string;
+    /**
+     * Set to true to update test sets based on the mapping given in `testSetMappingDetails`.
      * @default false
-    */
-    skipUpdatingFailedCase?: boolean
+     */
+    updateTestSetMappings?: boolean;
+    /**
+     * Map Xray Tests to Test Sets based on tags.
+     * @default undefined
+     */
+    testSetMappingDetails?: XRAY_TEST_SET_MAPPING;
+}
+
+export interface XRAY_FIELD_IDS {
+    /**
+     * Type of Xray Test Issue Ex., Xray Test / Test
+     */
+    xrayTestIssueType: string;
+    /**
+     * ID of Xray Test / Test
+     */
+    xrayTestId: string;
+    /**
+     * ID of Xray Test Set / Test Set
+     */
+    xrayTestSetId: string;
+    /**
+     * ID of Xray Test Execution / Test Execution
+     */
+    xrayTestExecutionId: string;
+
+    /**
+     * Field Id to specify which type of Xray Test (Manual / Cucumber / Generic)
+     */
+    xrayTestTypeFieldId: string;
+    /**
+     * ID of Xray Cucumber Test
+     */
+    xrayTestTypeId: string;
+    
+    /**
+     * Field Id to specify which type of Xray Cucumber Test (Scenario / Scenario Outline)
+     */
+    xrayCucumberTestFieldId: string;
+    /**
+     * Mapping Object contains the Id of each Xray Cucumber Test
+     */
+    xrayCucumberTestTypeMappings: { Scenario: string, 'Scenario Outline': string },
+    
+    /**
+     * Field Id used to add the cucumber steps
+     */
+    xrayCucumberTestStepFieldId: string;
+    
+    /**
+     * Field Id used to map the xray tests to it's test sets
+     */
+    xrayTestSetFieldId: string;
+
+    /**
+     * Field Id used to map test sets to it's test execution
+     */
+    xrayTestExecutionFieldId: string;
+}
+
+export interface PARSED_DATA {
+    /**
+     * Tags from Feature File which include both feature & scenario level
+     */
+    tags: string;
+    /**
+     * Type of scenario (Scenario / Scenario Outline)
+     */
+    scenarioType: string;
+    /**
+     * Name of the scenario
+     */
+    scenarioName: string;
+    /**
+     * Gherkin steps of the scenario
+     */
+    scenarioSteps: string;
+}
+
+export interface EXISTING_TICKETS {
+    /**
+     * Issue Key
+     */
+    key: string;
+    /**
+     * Issue Id
+     */
+    issueId: string;
+    /**
+     * Issue Type
+     */
+    issueType: string;
+    /**
+     * Issue Status
+     */
+    issueStatus: string;
+    /**
+     * Issue Summary
+     */
+    summary: string;
+    /**
+     * Issue Labels
+     */
+    labels: string[];
+    /**
+     * Type of Xray Test (Scenario / Scenario Outline)
+     */
+    xrayCucumberTestType: string;
+    /**
+     * Gherkin steps of the Xray Test
+     */
+    xrayCucumberTestStep: string;
+}
+
+interface PARSED_TEST_RESULT {
+    [scenarioName: string]: string;
+}
+
+export interface TEST_EXECUTION_OPTION extends JIRA_OPTION {
+    /**
+     * List of Test Execution IDs to which reports need to be updated
+     */
+    testExecutionIds?: string[];
+    /**
+     * Root folder path where the cucumber JSON output files are stored
+     * @default undefined
+     */
+    cucumberJsonReportFolderPath?: string;
+    /**
+     * Parsed test result details list.
+     * @default undefined
+     */
+    parsedTestResultDetails?: PARSED_TEST_RESULT[];
+    /**
+     * Skip updating execution tickets for failed test cases.
+     * @default false
+     */
+    skipUpdatingFailedCase?: boolean;
+}
+
+export interface LINT_OPTIONS {
+    /**
+     * Root folder path where the feature files are located
+     */
+    featureFolderPath?: string;
+    /**
+     * Filter feature files from a specific folder which should be a child of `featureFolderPath`.
+     * @default '/'
+     */
+    featureFolderFilter?: string;
 }
