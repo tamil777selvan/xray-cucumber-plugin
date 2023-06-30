@@ -1,20 +1,21 @@
 # Xray Cucumber Plugin
 
-A Customised Xray Cucumber plugin that provides feature to **sync "Xray Tests" & "Xray Test Sets"** against your source code and also provides capability to update test results back to the **"Xray Test Executions"**
+The Xray Cucumber Plugin is a powerful tool that seamlessly synchronizes your **Xray Tests** and **Xray Test Sets** with your source code. It provides a comprehensive set of features to streamline your testing workflow and effortlessly update test results back to the **Xray Test Executions**.
 
-# Features
+## Key Features
 
-- Create new Xray Tests when ever a scenario is added.
-- Update existing Xray Tests if the scenario gets modified.
-- Closes the Xray Tests if the scenario is removed from codebase.
-- Closes duplicate Xray Tests if found.
-- Re Opens the closed Xray Tests if the removed scenario is added back to codebase.
-- Converts scenario outline with multiple examples into scenario outline with single example.
-- Checks for duplicate scenario names before syncing.
-- Lints for scenario's description length if more than 250 chars.
-- Filter tests which needs to synced based on "cucumber tags" or specific "folder" name.
-- Unique split of Xray Tests when mapping to Xray Test Sets.
-- Update test result to the execution tickets from Cucumber JSON reports / parsed test result list.
+- Automatic creation of new Xray Tests when scenarios are added.
+- Updating existing Xray Tests if scenarios are modified.
+- Closure of Xray Tests when scenarios are removed from the codebase.
+- Detection and closure of duplicate Xray Tests, if any.
+- Reopening closed Xray Tests when removed scenarios are added back to the codebase.
+- Conversion of scenario outlines with multiple examples into a single example.
+- Duplicate scenario name checks before syncing to ensure data accuracy.
+- Enforcement of a scenario description length limit of 250 characters.
+- Test filtering based on "cucumber tags" or specific "folder" names for selective syncing.
+- Unique splitting of Xray Tests when mapping to Xray Test Sets.
+- Seamless update of test results to the execution tickets from Cucumber JSON reports or a parsed test result list.
+- Independent linting of feature files to ensure proper formatting and adherence to standards.
 
 ## Installation
 
@@ -22,15 +23,11 @@ A Customised Xray Cucumber plugin that provides feature to **sync "Xray Tests" &
 npm i xray-cucumber-plugin
 ```
 
-## PreRequisite
+## Prerequisite
 
-This is a mandatory prerequisite which requires one time manual configuration for feature files which has "Scenario Outline" in it.
+Before using the plugin, a one-time manual configuration is required for feature files containing "Scenario Outline". The description of each Scenario Outline must have a postfix with its example parameters.
 
-All Scenario Outline description must have postfix with it's examples param.
-
-The main reason for performing this action is, Cucumber's JSON report converts "Scenario Outline" into "Scenario" as a standard.
-
-Assume below is the existing approach which we follow,
+Here is an example of the existing approach:
 
 ```cucumber
 Feature: Test
@@ -46,7 +43,7 @@ Scenario Outline: PreRequisite Document
 	| value2 | value3 |
 ```
 
-From above code, the description needs to be updated as below,
+To optimize integration with the Cucumber JSON report, update the scenario outline description as follows:
 
 ```cucumber
 Feature: Test
@@ -61,32 +58,35 @@ Scenario Outline: PreRequisite Document (Example - title1: <title1>, title2: <ti
 	| value0 | value1 |
 	| value2 | value3 |
 ```
-With this minor updation to the scenario outline, the Cucumber JSON report has the compiled examples with it and would be more promising while updating tests resulst back to XRAY.
 
----
+This minor adjustment to the scenario outline ensures that the Cucumber JSON report contains the compiled examples, which improves the accuracy of updating test results in XRAY.
+
 ---
 
 # Xray Tests & Xray Test Sets 
 
 ## Configuration
 
+To configure the plugin, import the `XrayCucumberPlugin` module and specify the desired options:
+
 ```javascript
 import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
 const options = {
-	featureFolderPath:  './features',
-	featureFolderFilter:  'OptimisedE2EPack',
-	featureTagFilter:  '',
-	scenarioDescriptionRegex: new RegExp(/TC_\d\d /gm),
-    scenarioDescriptionRegexReplaceValue: 'XCP ',
-	jiraHost:  'jira.********.com',
-	jiraProject:  'JIRA',
-	jiraUsername:  'demo.jira',
-	jiraPassword:  'StrongPassword#1',
-	updateTestSetMappings:  true,
+	featureFolderPath: './features',
+	featureFolderFilter: 'OptimisedE2EPack',
+	featureTagFilter: '',
+	scenarioDescriptionRegex: /TC_\d\d /gm,
+	scenarioDescriptionRegexReplaceValue: 'XCP ',
+	jiraHost: 'jira.********.com',
+	jiraProject: 'JIRA',
+	jiraUsername: 'demo.jira',
+	jiraPassword: 'StrongPassword#1',
+    jiraToken: 'StrongToken#1',
+	updateTestSetMappings: true,
 	testSetMappingDetails: {
 		testSet1: {
-			tags:  '@sanity and @manual',
+			tags: '@sanity and @manual',
 			testSetId: ['JIRA-1'],
 			tests: []
 		}
@@ -98,129 +98,142 @@ XrayCucumberPlugin.init(options);
 
 ## Exposed Options
 
+The plugin provides the following options for configuration:
+
 | Option | Description |
-| :---:  | :---: |
-| featureFolderPath | Relative path of Root Folder which holds the Feature Files |
-| featureFolderFilter | Once the Feature files are loaded from ${featureFolderPath}, filter files which are specific from given folder |
-| featureTagFilter | Filter Scenario's based on the given tagExpression | 
-| scenarioDescriptionRegex | Find the specific content from scenario's description and replace it with value passed in ${scenarioDescriptionRegexReplaceValue} | 
-| scenarioDescriptionRegexReplaceValue | Value to be replaced for found ${scenarioDescriptionRegex} |
-| jiraHost | JIRA endpoint |
-| jiraProject | JIRA Key of the project to interact with |
-| jiraUsername | Authorized JIRA Username with permissions over the selected ProjectKey |
-| jiraPassword | JIRA Password of given ${jiraUsername} |
-| updateTestSetMappings | Boolean param, which takes care of mapping Xray Tests with Xray Tests Sets |
-| testSetMappingDetails| Mapping details of the tests and test set based on cucumber tagExpression. Structure can be found [here](#structure-of-testsetmappingdetails) |
+| :---:  | :--- |
+| featureFolderPath | The relative path of the root folder that holds the feature files. |
+| featureFolderFilter | Filter the feature files based on the specified folder.  `Default: '/'` |
+| featureTagFilter | Filter the scenarios based on the provided tag expression. `Default: ''` | 
+| scenarioDescriptionRegex | A regular expression used to find specific content in the scenario description. |
+| scenarioDescriptionRegexReplaceValue | The value to replace the matched content in the scenario description. |
+| jiraProtocol| The protocol for JIRA connection (HTTP/HTTPS). `Default: HTTPS` |
+| jiraHost | The JIRA endpoint. |
+| jiraProject | The key of the JIRA project to interact with. |
+| jiraUsername | The authorized JIRA username with permissions for the selected project. `Default: process.env.JIRA_USERNAME` |
+| jiraPassword | The JIRA password for the specified username. `Default: process.env.JIRA_PASSWORD` |
+| jiraToken | The JIRA token for authentication and authorization. `Default: process.env.JIRA_TOKEN` |
+| updateTestSetMappings | A boolean flag indicating whether to map Xray Tests with Xray Test Sets. `Default: false` |
+| testSetMappingDetails | Mapping details of tests and test sets based on cucumber tag expressions. See the structure details below. |
 
-## Default Options
+**Note:** 
+- When using the `init` function, the provided options override the default values.
+- Either `jiraUsername` & `jiraPassword` or `jiraToken` is required.
 
-| Option | Default Value |
-| :---:  | :---: |
-| featureFolderFilter | '/' |
-| featureTagFilter | ' ' |
-| scenarioDescriptionRegex | undefined |
-| jiraUsername | process.env.JIRA_USERNAME |
-| jiraPassword | process.env.JIRA_PASSWORD |
-| updateTestSetMappings | false |
-
-**Note :** Passing options via the `init` function takes precedence and overrides the default values.
-
-## Structure of testSetMappingDetails
+## Structure of `testSetMappingDetails`
 
 ```javascript
 {
 	testSet1: {
-		tags:  '@sanity and @manual',
-		testSetId: ['JIRA-1'],
-		tests: []
+		tags: '@sanity and @manual',
+		testSetId: ['JIRA-1']
 	},
 	testSet2: {
-		tags:  '@sanity and not @manual',
-		testSetId: ['JIRA-2', 'JIRA-3'],
-		tests: []
+		tags: '@sanity and not @manual',
+		testSetId: ['JIRA-2', 'JIRA-3']
 	}
 }
 ```
 
-- `testSet1 / testSet2` --> Unique name to identify your test sets easily. This can be of any name which is mainly used for our understanding and syntax purpose.  
-- `tags` --> Used to filter Xray Tests based on the tagExpression given
-- `testSetId` --> List of Xray Test Set Id's between which the tests needs to be mapped. Number of Xray Tests splits equally based on the number of tests sets provided and gets mapped.
-- `tests` --> Used to store the equally spliced test Id's by the code. Just kept the syntax here by thinking a way to map the tests from different JIRA projects which can be a future requirement. Meanwhile keep this as empty and should not modify.
+- `testSet1 / testSet2`: Unique names for identifying test sets. These names serve for understanding and syntax purposes.
+- `tags`: Used to filter Xray Tests based on the specified tag expression.
+- `testSetId`: A list of Xray Test Set IDs to which the tests will be mapped. The number of Xray Tests is divided equally based on the number of test sets provided.
 
-**Note :** `testSetMappingDetails` object can have "n number" of nested objects with it's defined structure.
+**Note:** The `testSetMappingDetails` object can have any number of nested objects with the specified structure.
 
----
 ---
 
 # Update Test Execution Results
 
 ## Configuration
 
+To update test execution results, import the `XrayCucumberPlugin` module and provide the relevant options:
+
 ```javascript
 import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
 const options = {
-    jiraHost:  'jira.********.com',
-	jiraProject:  'JIRA',
-	jiraUsername:  'demo.jira',
-	jiraPassword:  'StrongPassword#1',
-    testExecutionIds: ['JIRA-6'],
-    cucumberJsonReportFolder: './json_report'
+	jiraHost: 'jira.********.com',
+	jiraProject: 'JIRA',
+	jiraUsername: 'demo.jira',
+	jiraPassword: 'StrongPassword#1',
+    jiraToken: 'StrongToken#1',
+	testExecutionIds: ['JIRA-6'],
+	cucumberJsonReportFolderPath: './json_report'
 }
 
 XrayCucumberPlugin.updateTestExecutionResults(options);
 ```
+
 ## Exposed Options
 
+The plugin provides the following options for updating test execution results:
+
 | Option | Description |
-| :---:  | :---: |
-| jiraHost | JIRA endpoint |
-| jiraProject | JIRA Key of the project to interact with |
-| jiraUsername | Authorized JIRA Username with permissions over the selected ProjectKey |
-| jiraPassword | JIRA Password of given ${jiraUsername} |
-| testExecutionIds | List of Xray Test Execution Id's to which result needs to be updated |
-| cucumberJsonReportFolder | Root folder path where the cucumber JSON report is stored |
-| parsedTestResultDetails | Update test execution results based on custom formed result list. Structure can be found [here](#structure-of-parsedTestResultDetails) |
-| skipUpdatingFailedCase | Skip the updation of failed test cases to the corresponding test execution tickets |
+| :---:  | :--- |
+| jiraProtocol | The protocol for JIRA connection (HTTP/HTTPS). `Default: HTTPS` |
+| jiraHost | The JIRA endpoint. |
+| jiraProject | The key of the JIRA project to interact with. |
+| jiraUsername | The authorized JIRA username with permissions for the selected project. `Default: process.env.JIRA_USERNAME` |
+| jiraPassword | The JIRA password for the specified username. `Default: process.env.JIRA_PASSWORD` |
+| jiraToken | The JIRA token for authentication and authorization. `Default: process.env.JIRA_TOKEN` |
+| testExecutionIds | A list of Xray Test Execution IDs to which the results should be updated. |
+| cucumberJsonReportFolderPath | The root folder path where the cucumber JSON report is stored. |
+| parsedTestResultDetails | An optional custom-formed result list for updating test execution results. See the structure details below. |
+| skipUpdatingFailedCase | Skip updating failed test cases to the corresponding test execution tickets. `Default: false` |
 
-**Note :** 
-- Always try to keep the `${cucumberJsonReportFolder}` folder clean before test execution by clearing old unwanted reports. Else, there can be a flakiness in the output.
-- The array list passed in `${parsedTestResultDetails}` takes precedence over `${cucumberJsonReportFolder}`. So, if you wish to update results from Cucumber JSON, try avoiding adding `${parsedTestResultDetails}` to the input param.
+**Note:** 
+- When using the `updateTestExecutionResults` function, the provided options override the default values.
+- Either `jiraUsername` & `jiraPassword` or `jiraToken` is required.
 
-## Default Options
-
-| Option | Default Value |
-| :---:  | :---: |
-| jiraUsername | process.env.JIRA_USERNAME |
-| jiraPassword | process.env.JIRA_PASSWORD |
-| parsedTestResultDetails | undefined |
-| skipUpdatingFailedCase | false |
-
-**Note :** Passing options via the `updateTestExecutionResults` function takes precedence and overrides the default values.
-
-## Structure of parsedTestResultDetails
+## Structure of `parsedTestResultDetails`
 
 ```javascript
 [
-	{'scenario 1': 'PASS'},
-	{'scenario 2': 'PASS'},
-	{'scenario 3': 'FAIL'},
-	{'scenario 4 (Example - title1: <title1>)': 'PASS'}
+	{
+		'Test Scenario One': 'PASS',
+        'Test Scenario Two': 'PASS',
+        'Test Scenario Outline One': 'PASS',
+        'Test Scenario Outline Two': 'Fail',
+	}
 ]
 ```
-**Note :** The status of test result needs to be either "PASS" / "FAIL"
 
-----
-----
+**Note:** 
+ - `parsedTestResultDetails` is an array of objects where each object should have a key-value pair of `scenarioName` and `scenarioStatus`.
 
-## Debugging
+# Lint Feature Files
 
-Since this plugin consumes JIRA Rest API's to operate, those API logs are enabled only in debugging mode. 
+## Configuration
 
-The debugging mode doens't expose the endpoint details, rather just console the statuscode and the method of API call made.
+To lint the feature files independently regardless of other features of the plugin, import the `XrayCucumberPlugin` module and provide the relevant options:
 
-To enable the debugging logs, below environment variable should be turned on as,
+```javascript
+import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
-```bash
-export XRAY_CUCUMBER_PLUGIN_DEBUG=true
+const options = {
+	featureFolderPath: './features',
+}
+
+XrayCucumberPlugin.lintFeatureFiles(options);
 ```
+
+## Exposed Options
+
+The plugin provides the following options for linting the feature files independently:
+
+| Option | Description |
+| :---:  | :--- |
+| featureFolderPath | The relative path of the root folder that holds the feature files. |
+| featureFolderFilter | Filter the feature files based on the specified folder.  `Default: '/'` |
+
+## Usage
+
+1. Install the Xray Cucumber Plugin using the provided npm command.
+2. Configure the plugin using the available options.
+3. Use the plugin to synchronize Xray Tests and Test Sets with your source code.
+4. Update test execution results by providing the relevant configuration options.
+
+Remember to replace the placeholder values in the configuration examples with the appropriate information for your project. Feel free to modify the configurations to suit your specific needs.
+
+With these improvements, the Xray Cucumber Plugin offers enhanced functionality and flexibility for managing and synchronizing your tests and test results with Xray.
