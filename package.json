@@ -35,13 +35,13 @@
 		"lodash": "^4.17.21"
 	},
 	"devDependencies": {
-		"@types/lodash": "4.14.195",
-		"@types/node": "20.3.2",
-		"@typescript-eslint/eslint-plugin": "5.60.1",
-		"@typescript-eslint/parser": "5.60.1",
-		"eslint": "8.43.0",
-		"pre-commit": "1.2.2",
-		"ts-node": "10.9.1"
+		"@types/lodash": "^4.14.199",
+		"@types/node": "^20.8.0",
+		"@typescript-eslint/eslint-plugin": "^6.7.3",
+		"@typescript-eslint/parser": "^6.7.3",
+		"eslint": "^8.50.0",
+		"pre-commit": "^1.2.2",
+		"ts-node": "^10.9.1"
 	},
 	"keywords": [
 		"xray",
