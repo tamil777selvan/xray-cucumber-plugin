@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import { readFile } from 'fs/promises';
 
-import logger from './utils/logger';
-import { TEST_EXECUTION_OPTION, XRAY_FIELD_IDS } from './types/types';
-import { getAllFilesInDir } from './utils/files';
-import { getExistingTickets, getTestExecutionIds, updateExecutionResult } from './utils/jira.helper';
+import logger from 'src/utils/logger.js';
+import { TEST_EXECUTION_OPTION, XRAY_FIELD_IDS } from 'src/types/types.js';
+import { getAllFilesInDir } from 'src/utils/files.js';
+import { getExistingTickets, getTestExecutionIds, updateExecutionResult } from 'src/utils/jira.helper.js';
 
 /**
  * Parse Cucumber JSON reports to extract test results.

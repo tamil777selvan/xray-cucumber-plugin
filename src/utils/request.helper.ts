@@ -1,6 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import logger from './logger';
+import logger from 'src/utils/logger.js';
 
 // Configure Axios to retry failed requests up to 2 times
 axiosRetry(axios, { retries: 2 });

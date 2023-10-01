@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
-import { EXISTING_TICKET, XRAY_TEST_SET_MAPPING, INIT_OPTIONS, XRAY_FIELD_IDS } from './types/types';
+import { EXISTING_TICKET, XRAY_TEST_SET_MAPPING, INIT_OPTIONS, XRAY_FIELD_IDS } from 'src/types/types.js';
 
-import { getExistingTickets } from './utils/jira.helper';
-import { requestHelper } from './utils/request.helper';
-import logger from './utils/logger';
+import { getExistingTickets } from 'src/utils/jira.helper.js';
+import { requestHelper } from 'src/utils/request.helper.js';
+import logger from 'src/utils/logger.js';
 
 /**
  * Generates test set mappings based on tag expressions.

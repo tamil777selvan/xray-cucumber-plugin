@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { requestHelper } from './request.helper';
-import { XRAY_FIELD_IDS, EXISTING_TICKET } from 'src/types/types';
+import { requestHelper } from 'src/utils/request.helper.js';
+import { XRAY_FIELD_IDS, EXISTING_TICKET } from 'src/types/types.js';
 
 /**
  * Represents the response structure for issue types.
@@ -169,7 +169,7 @@ export const getXrayFieldIds = async (jiraProtocol: string, jiraHost: string, ji
 
     const xrayCucumberTestFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:automated-test-type-custom-field');
 
-    const xrayCucumberTestTypeMappings = getXrayCucumberTestTypeMappings(xrayTestIdCreateMetaResponse, xrayCucumberTestFieldId);
+    const xrayCucumberTestTypeMappings = getXrayCucumberTestTypeMappings(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:automated-test-type-custom-field');
 
     const xrayCucumberTestStepFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:steps-editor-custom-field');
 
@@ -246,23 +246,25 @@ export const getExistingTickets = async (
     const issues = _.flattenDeep(collectiveResponse);
 
     return Promise.resolve(
-        issues.map((issue) => {
-            if (issue.fields[xrayCucumberTestFieldId]) {
-                return {
-                    key: issue.key,
-                    issueId: issue.id,
-                    issueType: xrayTestIssueType,
-                    issueStatus: issue.fields.status.name,
-                    summary: issue.fields.summary
-                        .toString()
-                        .trim()
-                        .replace(/[^a-zA-Z0-9-:,() ]/g, ''),
-                    labels: issue.fields.labels,
-                    xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId].value,
-                    xrayCucumberTestStep: issue.fields[xrayCucumberTestStepFieldId]
-                };
-            }
-        }) as EXISTING_TICKET[]
+        _.remove(
+            issues.map((issue) => {
+                if (issue.fields[xrayCucumberTestFieldId]) {
+                    return {
+                        key: issue.key,
+                        issueId: issue.id,
+                        issueType: xrayTestIssueType,
+                        issueStatus: issue.fields.status.name,
+                        summary: issue.fields.summary
+                            .toString()
+                            .trim()
+                            .replace(/[^a-zA-Z0-9-:,() ]/g, ''),
+                        labels: issue.fields.labels,
+                        xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId].value,
+                        xrayCucumberTestStep: issue.fields[xrayCucumberTestStepFieldId]
+                    };
+                }
+            }) as EXISTING_TICKET[]
+        )
     );
 };
 

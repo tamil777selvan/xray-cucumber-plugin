@@ -4,9 +4,9 @@ import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherki
 import { GherkinDocument, IdGenerator, FeatureChild, Step, Examples, TableRow } from '@cucumber/messages';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
-import logger from './logger';
-import { getAllFilesInDir } from './files';
-import { PARSED_DATA } from '../types/types';
+import logger from 'src/utils/logger.js';
+import { getAllFilesInDir } from 'src/utils/files.js';
+import { PARSED_DATA } from 'src/types/types.js';
 
 /**
  * Delimiter for lines in text.
@@ -30,7 +30,7 @@ const parser = new Parser(new AstBuilder(IdGenerator.incrementing()), new Gherki
  * @returns {string} Text representation of data table rows.
  */
 const getDataTableText = (rows: readonly TableRow[]): string =>
-    rows.map((row) => row.cells.map((cell) => `|${cell.value.trim()}`).join('')).join(lineDelimiter);
+    rows.map((row) => row.cells.map((cell) => `${stepDelimiter}|${cell.value.trim()}|`).join('')).join(lineDelimiter);
 
 /**
  * Gets the text representation of scenario steps.
@@ -42,7 +42,7 @@ const getScenarioStepsText = (steps: readonly Step[]): string =>
     steps
         .map((step) =>
             step.dataTable
-                ? `${stepDelimiter}${step.keyword}${step.text}${lineDelimiter}${stepDelimiter}${getDataTableText(step.dataTable.rows)}`
+                ? `${stepDelimiter}${step.keyword}${step.text}${lineDelimiter}${getDataTableText(step.dataTable.rows)}`
                 : `${stepDelimiter}${step.keyword}${step.text}`)
         .join(lineDelimiter);
 
@@ -118,28 +118,36 @@ const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, 
             const scenarios: PARSED_DATA[] = [];
             const scenarioName = featureChild.scenario.name.toString().trim();
 
-            if (featureChild.scenario.examples) {
+            if (featureChild.scenario.examples.length > 0) {
                 featureChild.scenario.examples.forEach((example: Examples) => {
-                    const exampleHeader = example.tableHeader.cells.map((cell) => cell.value).join(' | ');
-                    const exampleBody = example.tableBody.map((body) => body.cells.map((cell) => cell.value).join(' | ')).join(lineDelimiter);
+                    const exampleHeader = example.tableHeader.cells.map((cell) => cell.value);
 
-                    // eslint-disable-next-line max-len
-                    const exampleScenarioSteps = `${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}${exampleHeader}${lineDelimiter}${stepDelimiter}${exampleBody}${lineDelimiter}`;
+                    example.tableBody.forEach((body) => {
+                        const exampleBody = body.cells.map((cell) => cell.value);
 
-                    let updatedScenarioName = scenarioName.replace(/( \(Example - \{.*\}\))/g, '');
+                        const exampleObject = {};
+                        exampleHeader.forEach((header, index) => {
+                            exampleObject[header] = exampleBody[index];
+                        });
 
-                    if (scenarioDescriptionRegex) {
-                        updatedScenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
-                    }
+                        let updatedScenarioName = scenarioName
+                            .replace(/\(Example - [^)]+\)/g, `(Example - ${JSON.stringify(exampleObject)})`)
+                            .replace(/[{}]/g, '');
+                        if (scenarioDescriptionRegex) {
+                            updatedScenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                        }
 
-                    const data: PARSED_DATA = {
-                        tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
-                        scenarioType: updatedScenarioName.split(':')[0].trim(),
-                        scenarioName: updatedScenarioName.split(':')[1].trim(),
-                        scenarioSteps: backgroundSteps + getScenarioStepsText(featureChild.scenario.steps) + exampleScenarioSteps
-                    };
+                        const exampleScenarioSteps = `${stepDelimiter}${lineDelimiter}${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}|${exampleHeader.join('|')}|${lineDelimiter}${stepDelimiter}|${exampleBody.join('|')}|${lineDelimiter}`;
 
-                    scenarios.push(data);
+                        const data: PARSED_DATA = {
+                            tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
+                            scenarioType: featureChild.scenario.keyword,
+                            scenarioName: updatedScenarioName.trim(),
+                            scenarioSteps: backgroundSteps + getScenarioStepsText(featureChild.scenario.steps) + exampleScenarioSteps
+                        };
+
+                        scenarios.push(data);
+                    });
                 });
             } else {
                 let updatedScenarioName = scenarioName;
@@ -148,8 +156,8 @@ const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, 
                 }
                 const data: PARSED_DATA = {
                     tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
-                    scenarioType: scenarioName.split(':')[0].trim(),
-                    scenarioName: updatedScenarioName.split(':')[1].trim(),
+                    scenarioType: featureChild.scenario.keyword,
+                    scenarioName: updatedScenarioName.trim(),
                     scenarioSteps: backgroundSteps + getScenarioStepsText(featureChild.scenario.steps)
                 };
 

@@ -1,12 +1,12 @@
 import _ from 'lodash';
 
-import logger from './utils/logger';
+import logger from 'src/utils/logger.js';
 
-import { INIT_OPTIONS, XRAY_FIELD_IDS } from './types/types';
+import { INIT_OPTIONS, XRAY_FIELD_IDS } from 'src/types/types.js';
 
-import generateFeaturesToImport from './utils/featureFileParser';
+import generateFeaturesToImport from 'src/utils/featureFileParser.js';
 
-import { getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, updateIssueTransitions } from './utils/jira.helper';
+import { getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, updateIssueTransitions } from 'src/utils/jira.helper.js';
 
 /**
  * Synchronizes Cucumber tests with Xray in Jira.
@@ -76,9 +76,9 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
 
                 const existingLabels = _.flattenDeep(existingTicket.labels).sort();
 
-                const existingSteps = _.flattenDeep(existingTicket.xrayCucumberTestStep);
+                const existingSteps = [existingTicket.xrayCucumberTestStep];
 
-                const existingScenarioType = _.flattenDeep(existingTicket.xrayCucumberTestType);
+                const existingScenarioType = [existingTicket.xrayCucumberTestType];
 
                 if (!_.isEqual(labels, existingLabels) || !_.isEqual([scenarioSteps], existingSteps) || !_.isEqual([scenarioType], existingScenarioType)) {
                     const body = {
@@ -96,7 +96,7 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
                     logger.info(`XRAY: Skipping ticket modifications for ${existingTicket.key} as it's already in an updated state`);
                 }
 
-                const existingStatus: string[] = _.flattenDeep(existingTicket.issueStatus);
+                const existingStatus: string[] = [existingTicket.issueStatus];
 
                 if (existingStatus.includes('Closed')) {
                     const inUseTransitionId = await getTransitionId(
@@ -159,6 +159,7 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
                     logger.warn(`XRAY: Closed ${ticket} as it's a duplicate`);
                 }
             }
+            _.remove(existingTickets, (value) => value.summary === optimisedScenarioName);
         }
 
         if (existingTickets.length > 0) {
