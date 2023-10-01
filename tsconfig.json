@@ -1,16 +1,19 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
-		"esModuleInterop": true,
-		"target": "ESNext",
-		"module": "CommonJS",
-		"outDir": "./dist/cjs",
-		"moduleResolution": "Node",
-		"skipDefaultLibCheck": true,
-		"skipLibCheck": true,
+		"allowJs": true,
 		"declaration": true,
 		"declarationMap": true,
-		"removeComments": true
+		"resolveJsonModule": true,
+		"removeComments": false,
+		"strictFunctionTypes": false,
+		"experimentalDecorators": true,
+		"esModuleInterop": true,
+		"moduleResolution": "Node",
+		"module": "ESNext",
+		"outDir": "./dist",
+		"skipDefaultLibCheck": true,
+		"skipLibCheck": true
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules"]

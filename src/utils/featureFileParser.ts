@@ -134,7 +134,7 @@ const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, 
                             .replace(/\(Example - [^)]+\)/g, `(Example - ${JSON.stringify(exampleObject)})`)
                             .replace(/[{}]/g, '');
                         if (scenarioDescriptionRegex) {
-                            updatedScenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                            updatedScenarioName = updatedScenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
                         }
 
                         const exampleScenarioSteps = `${stepDelimiter}${lineDelimiter}${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}|${exampleHeader.join('|')}|${lineDelimiter}${stepDelimiter}|${exampleBody.join('|')}|${lineDelimiter}`;
@@ -152,7 +152,7 @@ const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, 
             } else {
                 let updatedScenarioName = scenarioName;
                 if (scenarioDescriptionRegex) {
-                    updatedScenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                    updatedScenarioName = updatedScenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
                 }
                 const data: PARSED_DATA = {
                     tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
