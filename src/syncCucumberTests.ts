@@ -1,12 +1,9 @@
 import _ from 'lodash';
 
-import logger from 'src/utils/logger.js';
-
-import { INIT_OPTIONS, XRAY_FIELD_IDS } from 'src/types/types.js';
-
-import generateFeaturesToImport from 'src/utils/featureFileParser.js';
-
-import { getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, updateIssueTransitions } from 'src/utils/jira.helper.js';
+import logger from './utils/logger.js';
+import { INIT_OPTIONS, XRAY_FIELD_IDS } from './types/types.js';
+import generateFeaturesToImport from './utils/featureFileParser.js';
+import { getExistingTickets, createNewTicket, updateExistingTicket, getTransitionId, updateIssueTransitions } from './utils/jira.helper.js';
 
 /**
  * Synchronizes Cucumber tests with Xray in Jira.

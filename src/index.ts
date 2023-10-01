@@ -1,9 +1,9 @@
-import { INIT_OPTIONS, TEST_EXECUTION_OPTION, LINT_OPTIONS } from 'src/types/types.js';
-import { getXrayFieldIds } from 'src/utils/jira.helper.js';
-import { syncCucumberTests } from 'src/syncCucumberTests.js';
-import { syncTestSetMappings } from 'src/syncTestSetMappings.js';
-import { updateTestExecutionResults as _updateTestExecutionResults } from 'src/updateTestExecutionResults.js';
-import generateFeaturesToImport from 'src/utils/featureFileParser.js';
+import { INIT_OPTIONS, TEST_EXECUTION_OPTION, LINT_OPTIONS } from './types/types.js';
+import { getXrayFieldIds } from './utils/jira.helper.js';
+import { syncCucumberTests } from './syncCucumberTests.js';
+import { syncTestSetMappings } from './syncTestSetMappings.js';
+import { updateTestExecutionResults as _updateTestExecutionResults } from './updateTestExecutionResults.js';
+import generateFeaturesToImport from './utils/featureFileParser.js';
 
 /**
  * Represents the headers for making HTTP requests.

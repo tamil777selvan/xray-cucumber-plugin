@@ -4,9 +4,9 @@ import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherki
 import { GherkinDocument, IdGenerator, FeatureChild, Step, Examples, TableRow } from '@cucumber/messages';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
-import logger from 'src/utils/logger.js';
-import { getAllFilesInDir } from 'src/utils/files.js';
-import { PARSED_DATA } from 'src/types/types.js';
+import logger from './logger.js';
+import { getAllFilesInDir } from './files.js';
+import { PARSED_DATA } from '../types/types.js';
 
 /**
  * Delimiter for lines in text.

@@ -1,6 +1,7 @@
 import _ from 'lodash';
-import { requestHelper } from 'src/utils/request.helper.js';
-import { XRAY_FIELD_IDS, EXISTING_TICKET } from 'src/types/types.js';
+
+import { requestHelper } from './request.helper.js';
+import { XRAY_FIELD_IDS, EXISTING_TICKET } from '../types/types.js';
 
 /**
  * Represents the response structure for issue types.
