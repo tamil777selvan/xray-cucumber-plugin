@@ -1,56 +1,60 @@
 {
-  "name": "xray-cucumber-plugin",
-  "version": "2.0.0",
-  "description": "Library used to automate XRAY capabilities for Cucumber Test Cases.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "prepare": "npm run build",
-    "build": "tsc",
-    "lint": "eslint '**/*.ts' --max-warnings 0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tamil777selvan/xray-cucumber-plugin.git"
-  },
-  "author": {
-    "name": "Tamil Selvan",
-    "email": "tamil777selvan@gmail.com"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tamil777selvan/xray-cucumber-plugin/issues"
-  },
-  "homepage": "https://github.com/tamil777selvan/xray-cucumber-plugin#readme",
-  "dependencies": {
-    "@cucumber/gherkin": "26.2.0",
-    "@cucumber/messages": "22.0.0",
-    "@cucumber/tag-expressions": "5.0.1",
-    "axios": "^1.4.0",
-    "axios-retry": "^3.5.0",
-    "lodash": "4.17.21"
-  },
-  "devDependencies": {
-    "@types/lodash": "4.14.195",
-    "@types/node": "20.3.2",
-    "@typescript-eslint/eslint-plugin": "5.60.1",
-    "@typescript-eslint/parser": "5.60.1",
-    "eslint": "8.43.0",
-    "pre-commit": "1.2.2",
-    "ts-node": "10.9.1"
-  },
-  "keywords": [
-    "xray",
-    "cucumber",
-    "jira",
-    "xray api",
-    "jira api"
-  ],
-  "files": [
-    "dist/**/*"
-  ],
-  "pre-commit": {
-    "run": "lint",
-    "silent": true
-  }
+	"name": "xray-cucumber-plugin",
+	"version": "2.0.0",
+	"description": "Automate XRAY integration for Cucumber Test Cases in your projects with ease. Seamlessly interact with XRAY and Jira APIs to streamline test management.",
+	"type": "module",
+	"main": "dist/cjs/index.js",
+	"module": "dist/esm/index.js",
+	"exports": {
+		".": {
+			"require": "./dist/cjs/index.js",
+			"import": "./dist/esm/index.js"
+		}
+	},
+	"scripts": {
+		"prepare": "npm run build:esm && npm run build:cjs",
+		"build:esm": "tsc --outDir ./dist/esm --module ESNext",
+		"build:cjs": "tsc --outDir ./dist/cjs --module CommonJS",
+		"lint": "eslint '**/*.ts' --max-warnings 0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/tamil777selvan/xray-cucumber-plugin.git"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/tamil777selvan/xray-cucumber-plugin/issues"
+	},
+	"homepage": "https://github.com/tamil777selvan/xray-cucumber-plugin#readme",
+	"dependencies": {
+		"@cucumber/gherkin": "^27.0.0",
+		"@cucumber/messages": "^22.0.0",
+		"@cucumber/tag-expressions": "^5.0.6",
+		"axios": "^1.5.1",
+		"axios-retry": "^3.8.0",
+		"lodash": "^4.17.21"
+	},
+	"devDependencies": {
+		"@types/lodash": "4.14.195",
+		"@types/node": "20.3.2",
+		"@typescript-eslint/eslint-plugin": "5.60.1",
+		"@typescript-eslint/parser": "5.60.1",
+		"eslint": "8.43.0",
+		"pre-commit": "1.2.2",
+		"ts-node": "10.9.1"
+	},
+	"keywords": [
+		"xray",
+		"cucumber",
+		"jira",
+		"xray api",
+		"jira api"
+	],
+	"files": [
+		"dist/**/*"
+	],
+	"pre-commit": {
+		"run": "lint",
+		"silent": true
+	}
 }
