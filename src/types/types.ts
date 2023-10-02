@@ -234,4 +234,14 @@ export interface LINT_OPTIONS {
 	 * @default '/'
 	 */
     featureFolderFilter?: string;
+    /**
+	 * Regex Pattern used to identify specific text from the scenario's description for replacement.
+	 * @default undefined
+	 */
+    scenarioDescriptionRegex?: RegExp;
+    /**
+	 * Value to be replaced for the identified regex pattern from `scenarioDescriptionRegex`.
+	 * @default undefined
+	 */
+    scenarioDescriptionRegexReplaceValue?: string;
 }

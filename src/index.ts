@@ -135,15 +135,21 @@ const updateTestExecutionResults = async (options: TEST_EXECUTION_OPTION): Promi
 const lintFeatureFiles = async (options: LINT_OPTIONS): Promise<void> => {
     try {
         const defaults = {
-            featureFolderFilter: '/'
+            featureFolderFilter: '/',
+            scenarioDescriptionRegex: undefined,
+            scenarioDescriptionRegexReplaceValue: undefined
         };
 
         const inputOptions = {
             ...defaults,
             ...options
         };
-
-        await generateFeaturesToImport(inputOptions.featureFolderPath, inputOptions.featureFolderFilter, '');
+        await generateFeaturesToImport(
+            inputOptions.featureFolderPath,
+            inputOptions.featureFolderFilter,
+            inputOptions.scenarioDescriptionRegex,
+            inputOptions.scenarioDescriptionRegexReplaceValue
+        );
     } catch (error) {
         /* eslint no-console: "off" */
         console.error(error);

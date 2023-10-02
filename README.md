@@ -186,3 +186,26 @@ XrayCucumberPlugin.updateTestExecutionResults(options);
  - `parsedTestResultDetails` is an array of objects where each object should have a key-value pair of `scenarioName` and `scenarioStatus`.
 
 With these streamlined configurations, you can effectively manage Xray Tests, Test Sets, and ensure accurate test execution result updates. Remember to replace placeholder values with your specific project details. Modify the configurations as needed to suit your requirements. The Xray Cucumber Plugin simplifies your testing workflow and keeps Xray in sync with your source code.
+
+## Lint Feature File
+
+You can independently lint feature files for proper formatting and adherence to standards.
+
+```javascript
+import XrayCucumberPlugin from 'xray-cucumber-plugin'
+
+const options = {
+	featureFolderPath: './features',
+	featureFolderFilter: 'OptimisedE2EPack',
+	scenarioDescriptionRegex: /TC_\d\d /gm,
+	scenarioDescriptionRegexReplaceValue: '',
+}
+
+XrayCucumberPlugin.lintFeatureFiles(options);
+```
+
+### Exposed Options (lintFeatureFiles Method)
+- `featureFolderPath`: Root folder path for feature files.
+- `featureFolderFilter`: Filter feature files by folder (Default: '/')
+- `scenarioDescriptionRegex`: Regular expression for specific scenario description content.
+- `scenarioDescriptionRegexReplaceValue`: Value to replace matched content in scenario descriptions.
