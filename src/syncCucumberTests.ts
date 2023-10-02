@@ -122,7 +122,7 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
                 }
             } else if (isTicketExists.length > 1) {
                 // Multiple tickets found for the same scenario, so closing all but the last created one
-                logger.warn(`XRAY: Scenario "${optimisedScenarioName}" has duplicate ticket IDs "${isTicketExists.map((ticket) => ticket.key).join(', ')}"...`);
+                logger.warn(`XRAY: Scenario "${optimisedScenarioName}" has duplicate ticket IDs "${isTicketExists.map((ticket) => ticket.key).join(', ')}"`);
                 const ticketsToClose = _.initial(isTicketExists.map((ticket) => ticket.key).sort());
 
                 for (const ticket of ticketsToClose) {

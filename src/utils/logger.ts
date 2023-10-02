@@ -1,7 +1,7 @@
 /**
  * Colors used for log messages based on log levels.
  */
-const logColors = {
+export const logColors = {
     info: '\x1b[32m%s\x1b[0m', // Green color for info messages
     error: '\x1b[31m%s\x1b[0m', // Red color for error messages
     warn: '\x1b[33m%s\x1b[0m', // Yellow color for warning messages

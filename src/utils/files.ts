@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 /**
@@ -10,10 +10,10 @@ import path from 'node:path';
  */
 export const getAllFilesInDir = async (dirPath: string, extension: string): Promise<string[]> => {
     try {
-        const files = await fs.readdir(path.resolve(dirPath));
+        const files = await readdir(path.resolve(dirPath));
         const filePromises = files.map(async (file: string) => {
             const filePath = path.join(dirPath, file);
-            const fileStat = await fs.stat(filePath);
+            const fileStat = await stat(filePath);
             if (fileStat.isDirectory()) {
                 return getAllFilesInDir(filePath, extension);
             } else if (fileStat.isFile() && file.endsWith(extension)) {

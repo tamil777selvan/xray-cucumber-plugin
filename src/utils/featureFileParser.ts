@@ -51,7 +51,7 @@ const getScenarioStepsText = (steps: readonly Step[]): string =>
  *
  * @param {PARSED_DATA[]} parsedData - Parsed data containing scenarios.
  */
-const validateScenarioNames = (parsedData: PARSED_DATA[]) => {
+export const validateScenarioNames = (parsedData: PARSED_DATA[]) => {
     const scenarioNames = parsedData.map(
         (data) => data.scenarioName.replace(/[^a-zA-Z0-9-:(), ]/g, '') // Remove invalid characters
     );
@@ -97,7 +97,8 @@ const filterScenariosByTag = (parsedData: PARSED_DATA[], featureTagFilter: strin
  * @param {string} scenarioDescriptionRegexReplaceValue - Replacement value for scenario descriptions.
  * @returns {Promise<PARSED_DATA[]>} Parsed data extracted from the feature file.
  */
-const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, scenarioDescriptionRegexReplaceValue: string): Promise<PARSED_DATA[]> => {
+// eslint-disable-next-line max-len
+export const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, scenarioDescriptionRegexReplaceValue: string): Promise<PARSED_DATA[]> => {
     const raw = await readFile(file);
     const gherkinDocument: GherkinDocument = parser.parse(raw.toString());
 

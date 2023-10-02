@@ -114,11 +114,13 @@ export const updateTestExecutionResults = async (options: TEST_EXECUTION_OPTION 
                 if (executionId.length === 1) {
                     await updateExecutionResult(options.jiraProtocol, options.jiraHost, executionId.toString(), status, options.headers);
                     logger.info(`XRAY: Test Execution Result updated for ${ticketId.toString()}`);
-                } else {
-                    logger.warn(`XRAY: Skipping result update as multiple Execution Id found for ${scenarioName}`);
                 }
-            } else {
-                logger.warn(`XRAY: Skipping result update as no / multiple tickets found for ${scenarioName}`);
+                if (executionId.length === 0) {
+                    logger.warn(`XRAY: Skipping result update as ${scenarioName} not found in test execution`);
+                }
+            }
+            if (ticketId.length === 0) {
+                logger.warn(`XRAY: Skipping result update as ${scenarioName} not found in xray tests`);
             }
         }
 

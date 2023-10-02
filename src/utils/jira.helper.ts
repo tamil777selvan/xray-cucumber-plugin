@@ -306,7 +306,7 @@ export const updateExistingTicket = async (jiraProtocol: string, jiraHost: strin
  * @param {string} issueId - The ID of the Jira ticket.
  * @param {string[]} transitionNames - An array of transition names to search for.
  * @param {object} requestHeaders - Headers for the HTTP request.
- * @returns {Promise<string|null>} A promise that resolves to the ID of the found transition or null if not found.
+ * @returns {Promise<string|undefined>} A promise that resolves to the ID of the found transition or null if not found.
  */
 export const getTransitionId = async (
     jiraProtocol: string,
@@ -314,7 +314,7 @@ export const getTransitionId = async (
     issueId: string,
     transitionNames: string[],
     requestHeaders: object
-): Promise<string | null> => {
+): Promise<string | undefined> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${issueId}/transitions`;
     const response = await requestHelper.get(url, requestHeaders);
     const { transitions } = response;
@@ -340,6 +340,10 @@ export const updateIssueTransitions = async (jiraProtocol: string, jiraHost: str
     await requestHelper.post(url, body, requestHeaders);
 };
 
+interface TestExecutionIds {
+    b: string;
+    c: number;
+}
 /**
  * Get the test execution IDs associated with a specific Xray Test Execution.
  *
@@ -348,7 +352,7 @@ export const updateIssueTransitions = async (jiraProtocol: string, jiraHost: str
  * @param {string} xrayTestExecutionId - The ID of the Xray Test Execution.
  * @param {string} xrayTestExecutionFieldId - The field ID for test execution data.
  * @param {object} requestHeaders - Headers for the HTTP request.
- * @returns {Promise<any>} A promise that resolves to the test execution IDs.
+ * @returns {Promise<TestExecutionIds[]>} A promise that resolves to the test execution IDs.
  */
 export const getTestExecutionIds = async (
     jiraProtocol: string,
@@ -360,7 +364,7 @@ export const getTestExecutionIds = async (
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${xrayTestExecutionId}`;
     const response = await requestHelper.get(url, requestHeaders);
     const testExecutionIds = response.fields[xrayTestExecutionFieldId];
-    return testExecutionIds;
+    return testExecutionIds as TestExecutionIds[];
 };
 
 /**
