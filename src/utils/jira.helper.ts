@@ -1,71 +1,195 @@
 import _ from 'lodash';
 
-import { requestHelper } from './request.helper';
+import { requestHelper } from './request.helper.js';
+import { XRAY_FIELD_IDS, EXISTING_TICKET } from '../types/types.js';
 
-import { XRAY_FIELD_IDS, EXISTING_TICKETS } from 'src/types/types';
+/**
+ * Represents the response structure for issue types.
+ */
+interface IssueTypeResponse {
+    self: string;
+    id: string;
+    description: string;
+    iconUrl: string;
+    name: string;
+    subtask: boolean;
+    avatarId: number;
+}
 
-export const getXrayFieldIds = async (jiraProtocol: string, jiraHost: string, jiraProject: string, requestHeaders: object) => {
+/**
+ * Represents the response structure for issue type metadata.
+ */
+interface CreateMetaResponse {
+    maxResults: number;
+    startAt: number;
+    total: number;
+    isLast: boolean;
+    values: {
+        required: boolean;
+        schema: { type: string; system?: string; custom?: string; customId?: number };
+        name: string;
+        fieldId: string;
+        hasDefaultValue: boolean;
+        operations: Array<string>;
+        allowedValues: {
+            self: string;
+            id: string;
+            description: string;
+            iconUrl: string;
+            name: string;
+            subtask: boolean;
+            avatarId: number;
+            value?: string;
+            disabled?: boolean;
+        }[];
+    }[];
+}
 
-    // Get the list of issuetypes available in given jira host
-    const issueTypeUrl = `${jiraProtocol}://${jiraHost}/rest/api/2/issuetype`;
-    const issueTypeResponse = await requestHelper.get(issueTypeUrl, requestHeaders);
+/**
+ * Get the ID of an issue type by name.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @param {string[]} issueTypeNames - An array of issue type names to search for.
+ * @returns {Promise<string|null>} The ID of the found issue type, or null if not found.
+ */
+const getIssueTypeIdByName = async (jiraProtocol: string, jiraHost: string, requestHeaders: object, issueTypeNames: string[]): Promise<string | null> => {
+    const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issuetype`;
+    const response: IssueTypeResponse[] = await requestHelper.get(url, requestHeaders);
+    const foundIssue = response.find(({ name }) => issueTypeNames.includes(name));
+    return foundIssue ? foundIssue.id : null;
+};
 
-    // Returns the Id of Xray Test (Represents a Test)
-    const xrayTestId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Test' }), 'id');
+/**
+ * Retrieve the issue type metadata for a project with a specific issue type ID.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} jiraProject - The Jira project key.
+ * @param {string} issueTypeId - The issue type ID to retrieve metadata for.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<CreateMetaResponse>} The issue type metadata response.
+ */
+const getIssueTypeMetadata = async (
+    jiraProtocol: string,
+    jiraHost: string,
+    jiraProject: string,
+    issueTypeId: string,
+    requestHeaders: object
+): Promise<CreateMetaResponse> => {
+    const xrayTestMetaDataUrl = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/createmeta/${jiraProject}/issuetypes/${issueTypeId}`;
+    return await requestHelper.get(xrayTestMetaDataUrl, requestHeaders);
+};
 
-    // Returns the Id of Xray Test Set (Represents a Test Set)
-    const xrayTestSetId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test Set' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Test Set' }), 'id');
+/**
+ * Get the name of an allowed value by field ID.
+ *
+ * @param {CreateMetaResponse} issueTypeResponse - The issue type response object.
+ * @param {string} fieldId - The field ID to search for in issueTypeResponse.
+ * @returns {string|null} The name of the allowed value, or null if not found.
+ */
+const getAllowedValueNameByFieldId = (issueTypeResponse: CreateMetaResponse, fieldId: string): string | null => {
+    const field = issueTypeResponse.values.find((item) => item.fieldId === fieldId);
+    if (field && field.allowedValues) {
+        return _.get(_.first(field.allowedValues), 'name', null);
+    }
+    return null;
+};
 
-    // Returns the Id of Xray Test Execution (Represents a Test Execution)
-    const xrayTestExecutionId = _.get(_.find(issueTypeResponse, { 'name': 'Xray Test Execution' }), 'id') || _.get(_.find(issueTypeResponse, { 'name': 'Test Execution' }), 'id');
+/**
+ * Get the ID of an issue type by schema name.
+ *
+ * @param {CreateMetaResponse} issueTypeResponse - The issue type response object.
+ * @param {string} schemaName - The name of the custom field in schema.
+ * @returns {string|null} The ID of the issue type, or null if not found.
+ */
+const getFieldIdByCustomSchema = (issueTypeResponse: CreateMetaResponse, schemaName: string): string | null => {
+    const field = issueTypeResponse.values.find((item) => item.schema.custom === schemaName);
+    return field ? field.fieldId : null;
+};
 
-    // Get the meta data information for the Xray Test (`${xrayTestId}`) of given jira project (`${jiraProject}`)
-    const xrayTestMetaDataUrl = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/createmeta/${jiraProject}/issuetypes/${xrayTestId}`;
-    const xrayTestMetaDataResponse = await requestHelper.get(xrayTestMetaDataUrl, requestHeaders);
+/**
+ * Get the ID of an allowed value by schema name and allowed value.
+ *
+ * @param {CreateMetaResponse} issueTypeResponse - The issue type response object.
+ * @param {string} schemaName - The name of the custom field in schema.
+ * @param {string} allowedValue - The value to match in allowedValues.
+ * @returns {string|null} The ID of the allowed value, or null if not found.
+ */
+const getAllowedValueIdByCustomSchemaAndAllowedValue = (issueTypeResponse: CreateMetaResponse, schemaName: string, allowedValue: string): string | null => {
+    const field = issueTypeResponse.values.find((item) => item.schema.custom === schemaName);
+    if (field && field.allowedValues) {
+        const foundAllowedValue = field.allowedValues.find((value) => value.value === allowedValue);
+        return foundAllowedValue ? foundAllowedValue.id : null;
+    }
+    return null;
+};
 
-    // Get the allowedValues for fieldId which has "issuetype"
-    // This would be used to specify which type of issue, the plugin would be manupulating
-    const { allowedValues } = xrayTestMetaDataResponse.values.find((item: { fieldId: string; }) => item.fieldId === 'issuetype');
-    const xrayTestIssueType = _.get(_.first(allowedValues), 'name');
+/**
+ * Get a mapping of Xray Cucumber Test types.
+ *
+ * @param {CreateMetaResponse} issueTypeResponse - The issue type response object.
+ * @param {string} xrayCucumberTestFieldId - The field ID for Xray Cucumber Test types.
+ * @returns {object} An object mapping Xray Cucumber Test types.
+ */
+const getXrayCucumberTestTypeMappings = (issueTypeResponse: CreateMetaResponse, xrayCucumberTestFieldId: string): object => {
+    const field = issueTypeResponse.values.find((item) => item.schema.custom === xrayCucumberTestFieldId);
+    if (field && field.allowedValues) {
+        return field.allowedValues.reduce((acc, obj) => {
+            acc[obj.value] = obj.id;
+            return acc;
+        }, {});
+    }
+    return {};
+};
 
-    // Get the fieldId & allowedValues for schema.custom which has "com.xpandit.plugins.xray:test-type-custom-field"
-    // This would be used to specify which type of Xray Test (Manual / Cucumber / Generic), the plugin would be creating
-    const { fieldId: xrayTestTypeFieldId, allowedValues: xrayTestType } = xrayTestMetaDataResponse.values.find((item: { schema: { custom: string; }; }) => item.schema.custom === 'com.xpandit.plugins.xray:test-type-custom-field');
+/**
+ * Get Xray field IDs for a Jira project.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} jiraProject - The Jira project key.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<XRAY_FIELD_IDS>} An object containing various Xray field IDs.
+ */
+export const getXrayFieldIds = async (jiraProtocol: string, jiraHost: string, jiraProject: string, requestHeaders: object): Promise<XRAY_FIELD_IDS> => {
+    const xrayTestId = await getIssueTypeIdByName(jiraProtocol, jiraHost, requestHeaders, ['Xray Test', 'Test']);
 
-    // Get the Id from ${allowedValues} which has "Cucumber" as it's value
-    const xrayTestTypeId = _.get(_.find(xrayTestType, { 'value': 'Cucumber' }), 'id');
+    const xrayTestIdCreateMetaResponse = await getIssueTypeMetadata(jiraProtocol, jiraHost, jiraProject, xrayTestId, requestHeaders);
 
-    // Get the fieldId & allowedValues for schema.custom which has "com.xpandit.plugins.xray:automated-test-type-custom-field"
-    // This would be used to specify which type of Xray Cucumber Test (Scenario / Scenario Outline), the plugin would be creating
-    const { fieldId: xrayCucumberTestFieldId, allowedValues: xrayCucumberTestType } = xrayTestMetaDataResponse.values.find((item: { schema: { custom: string; }; }) => item.schema.custom === 'com.xpandit.plugins.xray:automated-test-type-custom-field');
+    const xrayTestIssueType = getAllowedValueNameByFieldId(xrayTestIdCreateMetaResponse, 'issuetype');
 
-    // Reduce ${xrayCucumberTestType} by iterating each entry and returing an object with "{[value]: id}" mapping
-    const xrayCucumberTestTypeMappings = _.reduce(xrayCucumberTestType, (acc, obj) => {
-        acc[obj.value] = obj.id;
-        return acc;
-    }, {});
+    const xrayTestTypeFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:test-type-custom-field');
 
-    // Get the fieldId for schema.custom which has "com.xpandit.plugins.xray:steps-editor-custom-field"
-    // This would be used to add the cucumber steps
-    const { fieldId: xrayCucumberTestStepFieldId } = xrayTestMetaDataResponse.values.find((item: { schema: { custom: string; }; }) => item.schema.custom === 'com.xpandit.plugins.xray:steps-editor-custom-field');
+    const xrayTestTypeId = getAllowedValueIdByCustomSchemaAndAllowedValue(
+        xrayTestIdCreateMetaResponse,
+        'com.xpandit.plugins.xray:test-type-custom-field',
+        'Cucumber'
+    );
 
-    // Get the meta data information for the Xray Test Set (`${xrayTestSetId}`) of given jira project (`${jiraProject}`)
-    const xrayTestSetMetaDataUrl = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/createmeta/${jiraProject}/issuetypes/${xrayTestSetId}`;
-    const xrayTestSetMetaDataResponse = await requestHelper.get(xrayTestSetMetaDataUrl, requestHeaders);
+    const xrayCucumberTestFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:automated-test-type-custom-field');
 
-    // Get the fieldId for schema.custom which has "com.xpandit.plugins.xray:test-sets-tests-custom-field"
-    // This would be used to map the xray tests to it's test sets
-    const { fieldId: xrayTestSetFieldId } = xrayTestSetMetaDataResponse.values.find((item: { schema: { custom: string; }; }) => item.schema.custom === 'com.xpandit.plugins.xray:test-sets-tests-custom-field');
+    const xrayCucumberTestTypeMappings = getXrayCucumberTestTypeMappings(
+        xrayTestIdCreateMetaResponse,
+        'com.xpandit.plugins.xray:automated-test-type-custom-field'
+    );
 
-    // Get the meta data information for the Xray Test Execution (`${xrayTestExecutionId}`) of given jira project (`${jiraProject}`)
-    const xrayTestExecutionMetaDataUrl = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/createmeta/${jiraProject}/issuetypes/${xrayTestExecutionId}`;
-    const xrayTestExecutionMetaDataResponse = await requestHelper.get(xrayTestExecutionMetaDataUrl, requestHeaders);
+    const xrayCucumberTestStepFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:steps-editor-custom-field');
 
-    // Get the fieldId for schema.custom which has "com.xpandit.plugins.xray:testexec-tests-custom-field"
-    // This would be used to map test sets to it's test execution
-    const { fieldId: xrayTestExecutionFieldId } = xrayTestExecutionMetaDataResponse.values.find((item: { schema: { custom: string; }; }) => item.schema.custom === 'com.xpandit.plugins.xray:testexec-tests-custom-field');
+    const xrayTestSetId = await getIssueTypeIdByName(jiraProtocol, jiraHost, requestHeaders, ['Xray Test Set', 'Test Set']);
 
-    return ({
+    const xrayTestSetIdCreateMetaResponse = await getIssueTypeMetadata(jiraProtocol, jiraHost, jiraProject, xrayTestSetId, requestHeaders);
+
+    const xrayTestSetFieldId = getFieldIdByCustomSchema(xrayTestSetIdCreateMetaResponse, 'com.xpandit.plugins.xray:test-sets-tests-custom-field');
+
+    const xrayTestExecutionId = await getIssueTypeIdByName(jiraProtocol, jiraHost, requestHeaders, ['Xray Test Execution', 'Test Execution']);
+
+    const xrayTestExecutionIdCreateMetaResponse = await getIssueTypeMetadata(jiraProtocol, jiraHost, jiraProject, xrayTestExecutionId, requestHeaders);
+
+    const xrayTestExecutionFieldId = getFieldIdByCustomSchema(xrayTestExecutionIdCreateMetaResponse, 'com.xpandit.plugins.xray:testexec-tests-custom-field');
+
+    return {
         xrayTestIssueType,
         xrayTestId,
         xrayTestSetId,
@@ -77,21 +201,34 @@ export const getXrayFieldIds = async (jiraProtocol: string, jiraHost: string, ji
         xrayCucumberTestStepFieldId,
         xrayTestSetFieldId,
         xrayTestExecutionFieldId
-    } as XRAY_FIELD_IDS);
-}
+    } as XRAY_FIELD_IDS;
+};
 
-export const getExistingTickets = async (jiraProtocol: string, jiraHost: string, jiraProject: string, xrayTestIssueType: string, xrayCucumberTestFieldId: string, xrayCucumberTestStepFieldId: string, requestHeaders: object) => {
+/**
+ * Get existing tickets of a specific issue type within a Jira project.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} jiraProject - The Jira project key.
+ * @param {string} xrayTestIssueType - The issue type to filter by.
+ * @param {string} xrayCucumberTestFieldId - The field ID for Xray Cucumber Test types.
+ * @param {string} xrayCucumberTestStepFieldId - The field ID for Xray Cucumber Test steps.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<EXISTING_TICKET[]>} A promise that resolves to an array of existing tickets of the specified issue type.
+ */
+export const getExistingTickets = async (
+    jiraProtocol: string,
+    jiraHost: string,
+    jiraProject: string,
+    xrayTestIssueType: string,
+    xrayCucumberTestFieldId: string,
+    xrayCucumberTestStepFieldId: string,
+    requestHeaders: object
+): Promise<EXISTING_TICKET[]> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/search`;
     const body = {
         jql: `project = ${jiraProject} AND issuetype = '${xrayTestIssueType}'`,
-        fields: [
-            'issuetype',
-            'status',
-            'summary',
-            'labels',
-            xrayCucumberTestFieldId,
-            xrayCucumberTestStepFieldId
-        ],
+        fields: ['issuetype', 'status', 'summary', 'labels', xrayCucumberTestFieldId, xrayCucumberTestStepFieldId],
         maxResults: 1000,
         startAt: 0
     };
@@ -112,53 +249,143 @@ export const getExistingTickets = async (jiraProtocol: string, jiraHost: string,
 
     const issues = _.flattenDeep(collectiveResponse);
 
-    return Promise.resolve(issues.map((issue) => {
-        if (issue.fields[xrayCucumberTestFieldId]) {
-            return ({
-                key: issue.key,
-                issueId: issue.id,
-                issueType: xrayTestIssueType,
-                issueStatus: issue.fields.status.name,
-                summary: issue.fields.summary.toString().trim().replace(/[^a-zA-Z0-9-:,() ]/g, ''),
-                labels: issue.fields.labels,
-                xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId].value,
-                xrayCucumberTestStep: issue.fields[xrayCucumberTestStepFieldId]
-            })
-        }
-    }) as EXISTING_TICKETS[]);
-}
+    return Promise.resolve(
+        _.remove(
+            issues.map((issue) => {
+                if (issue.fields[xrayCucumberTestFieldId]) {
+                    return {
+                        key: issue.key,
+                        issueId: issue.id,
+                        issueType: xrayTestIssueType,
+                        issueStatus: issue.fields.status.name,
+                        summary: issue.fields.summary
+                            .toString()
+                            .trim()
+                            .replace(/[^a-zA-Z0-9-:,() ]/g, ''),
+                        labels: issue.fields.labels,
+                        xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId].value,
+                        xrayCucumberTestStep: issue.fields[xrayCucumberTestStepFieldId]
+                    };
+                }
+            }) as EXISTING_TICKET[]
+        )
+    );
+};
 
-export const createNewTicket = async (jiraProtocol: string, jiraHost: string, body: object, requestHeaders: object) => {
+/**
+ * Create a new Jira ticket.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {object} body - The request body containing ticket details.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<string>} A promise that resolves to a message indicating the creation of the new ticket.
+ */
+export const createNewTicket = async (jiraProtocol: string, jiraHost: string, body: object, requestHeaders: object): Promise<string> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue`;
     const response = await requestHelper.post(url, body, requestHeaders);
     return Promise.resolve(`XRAY: New ticket ${_.get(response, 'key')} created for ${_.get(body, 'fields.summary')}`);
-}
+};
 
+/**
+ * Update an existing Jira ticket.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} issueId - The ID of the Jira ticket to update.
+ * @param {object} body - The request body containing the updated ticket details.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ */
 export const updateExistingTicket = async (jiraProtocol: string, jiraHost: string, issueId: string, body: object, requestHeaders: object) => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${issueId}`;
     await requestHelper.put(url, body, requestHeaders);
-}
+};
 
-export const getTransitionId = async (jiraProtocol: string, jiraHost: string, issueId: string, transitionNames: string[], requestHeaders: object) => {
+/**
+ * Get the ID of a Jira ticket's transition by name.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} issueId - The ID of the Jira ticket.
+ * @param {string[]} transitionNames - An array of transition names to search for.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<string|undefined>} A promise that resolves to the ID of the found transition or null if not found.
+ */
+export const getTransitionId = async (
+    jiraProtocol: string,
+    jiraHost: string,
+    issueId: string,
+    transitionNames: string[],
+    requestHeaders: object
+): Promise<string | undefined> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${issueId}/transitions`;
     const response = await requestHelper.get(url, requestHeaders);
     const { transitions } = response;
-    return Promise.resolve(_.get(_.find(transitions, (transition) => transitionNames.includes(transition.name)), 'id'));
-}
+    return Promise.resolve(
+        _.get(
+            _.find(transitions, (transition) => transitionNames.includes(transition.name)),
+            'id'
+        )
+    );
+};
 
+/**
+ * Update issue transitions for a Jira ticket.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} issueId - The ID of the Jira ticket.
+ * @param {object} body - The request body containing transition details.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ */
 export const updateIssueTransitions = async (jiraProtocol: string, jiraHost: string, issueId: string, body: object, requestHeaders: object) => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${issueId}/transitions?expand=transitions.fields`;
     await requestHelper.post(url, body, requestHeaders);
-}
+};
 
-export const getTestExecutionIds = async (jiraProtocol: string, jiraHost: string, xrayTestExecutionId: string, xrayTestExecutionFieldId: string, requestHeaders: object) => {
+interface TestExecutionIds {
+    b: string;
+    c: number;
+}
+/**
+ * Get the test execution IDs associated with a specific Xray Test Execution.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} xrayTestExecutionId - The ID of the Xray Test Execution.
+ * @param {string} xrayTestExecutionFieldId - The field ID for test execution data.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ * @returns {Promise<TestExecutionIds[]>} A promise that resolves to the test execution IDs.
+ */
+export const getTestExecutionIds = async (
+    jiraProtocol: string,
+    jiraHost: string,
+    xrayTestExecutionId: string,
+    xrayTestExecutionFieldId: string,
+    requestHeaders: object
+): Promise<any> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/issue/${xrayTestExecutionId}`;
-    const response = await requestHelper.get(url, requestHeaders);    
+    const response = await requestHelper.get(url, requestHeaders);
     const testExecutionIds = response.fields[xrayTestExecutionFieldId];
-    return testExecutionIds;
-}
+    return testExecutionIds as TestExecutionIds[];
+};
 
-export const updateExecutionResult = async (jiraProtocol: string, jiraHost: string, xrayTestExecutionId: string, xrayTestStatus: string, requestHeaders: object) => {
+/**
+ * Update the execution result of a specific Xray Test Execution.
+ *
+ * @param {string} jiraProtocol - The protocol for the Jira host (e.g., 'https').
+ * @param {string} jiraHost - The hostname of the Jira instance.
+ * @param {string} xrayTestExecutionId - The ID of the Xray Test Execution.
+ * @param {string} xrayTestStatus - The new status for the test execution.
+ * @param {object} requestHeaders - Headers for the HTTP request.
+ */
+export const updateExecutionResult = async (
+    jiraProtocol: string,
+    jiraHost: string,
+    xrayTestExecutionId: string,
+    xrayTestStatus: string,
+    requestHeaders: object
+) => {
     const url = `${jiraProtocol}://${jiraHost}/rest/raven/1.0/api/testrun/${xrayTestExecutionId}/status?status=${xrayTestStatus}`;
     await requestHelper.put(url, {}, requestHeaders);
-}
+};

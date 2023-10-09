@@ -1,181 +1,210 @@
 import _ from 'lodash';
 import { readFile } from 'node:fs/promises';
-
 import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin';
-import { GherkinDocument, IdGenerator, FeatureChild, Step, Examples } from '@cucumber/messages';
+import { GherkinDocument, IdGenerator, FeatureChild, Step, Examples, TableRow } from '@cucumber/messages';
 import TagExpressionParser from '@cucumber/tag-expressions';
 
-import logger from './logger';
-import { getAllFilesInDir } from './files';
-import { PARSED_DATA } from '../types/types';
+import logger from './logger.js';
+import { getAllFilesInDir } from './files.js';
+import { PARSED_DATA } from '../types/types.js';
 
+/**
+ * Delimiter for lines in text.
+ */
 const lineDelimiter = '\n';
+
+/**
+ * Delimiter for steps in a scenario.
+ */
 const stepDelimiter = '\t';
 
+/**
+ * Gherkin parser for feature files.
+ */
 const parser = new Parser(new AstBuilder(IdGenerator.incrementing()), new GherkinClassicTokenMatcher());
 
-const parseFeatureFiles = async (files: string[], scenarioDescriptionRegex: RegExp, scenarioDescriptionRegexReplaceValue: string) => {
-    const parsedData: PARSED_DATA[][] = [];
-    for await (const file of files) {
-        const raw = await readFile(file);
+/**
+ * Gets the text representation of data table rows.
+ *
+ * @param {any[]} rows - Rows of a data table.
+ * @returns {string} Text representation of data table rows.
+ */
+const getDataTableText = (rows: readonly TableRow[]): string =>
+    rows.map((row) => row.cells.map((cell) => `${stepDelimiter}|${cell.value.trim()}|`).join('')).join(lineDelimiter);
 
-        const gherkinDocument: GherkinDocument = parser.parse(raw.toString());
+/**
+ * Gets the text representation of scenario steps.
+ *
+ * @param {Step[]} steps - Steps of a scenario.
+ * @returns {string} Text representation of scenario steps.
+ */
+const getScenarioStepsText = (steps: readonly Step[]): string =>
+    steps
+        .map((step) =>
+            step.dataTable
+                ? `${stepDelimiter}${step.keyword}${step.text}${lineDelimiter}${getDataTableText(step.dataTable.rows)}`
+                : `${stepDelimiter}${step.keyword}${step.text}`)
+        .join(lineDelimiter);
 
-        let featureLevelTags = '';
-        gherkinDocument.feature.tags.forEach((tag) => {
-            featureLevelTags += `${tag.name} `;
-        });
+/**
+ * Validates scenario names for duplicates and length.
+ *
+ * @param {PARSED_DATA[]} parsedData - Parsed data containing scenarios.
+ */
+export const validateScenarioNames = (parsedData: PARSED_DATA[]) => {
+    const scenarioNames = parsedData.map(
+        (data) => data.scenarioName.replace(/[^a-zA-Z0-9-:(), ]/g, '') // Remove invalid characters
+    );
 
-        let backgroundSteps = '';
+    const duplicateScenarioNames = _.filter(scenarioNames, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
 
-        gherkinDocument.feature.children.forEach((featureChild: FeatureChild) => {
-            let scenarioLevelTags = '';
-
-            if (featureChild.background) {
-                featureChild.background.steps.forEach((step: Step) => {
-                    backgroundSteps += stepDelimiter;
-                    backgroundSteps += step.keyword + step.text + lineDelimiter;
-                });
-            }
-
-            if (featureChild.scenario) {
-
-                featureChild.scenario.tags.forEach((tag) => {
-                    scenarioLevelTags += `${tag.name} `;
-                });
-
-                let exampleHeader = [];
-                const exampleBody = [];
-                const examples = [];
-                if (featureChild.scenario.examples) {
-                    featureChild.scenario.examples.forEach((example: Examples) => {
-                        exampleHeader = example.tableHeader.cells.map((cell) => cell.value);
-                        example.tableBody.forEach((body) => {
-                            exampleBody.push(body.cells.map((cell) => cell.value));
-                        });
-                    });
-                    exampleBody.forEach((body) => {
-                        const exampleObject = {};
-                        exampleHeader.forEach((header, index) => {
-                            exampleObject[header] = body[index];
-                        });
-                        examples.push(exampleObject);
-                    });
-                }
-
-                const scenarios = [];
-
-                let scenarioName = featureChild.scenario.name.toString().trim();
-
-                if (examples.length > 0) {
-                    examples.forEach((example) => {
-                        if (scenarioName.includes('(Example -')) {
-                            scenarioName = scenarioName.substring(0, scenarioName.indexOf('(Example -')).trim();
-                        }
-                        scenarioName += ` (Example - ${JSON.stringify(example)})`;
-                        scenarioName = scenarioName.toString().replace(/[{}]/g, '');
-
-                        if (scenarioDescriptionRegex) {
-                            scenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
-                        }
-
-                        scenarios.push(`${lineDelimiter} ${featureChild.scenario.keyword}: ${scenarioName}`);
-                    });
-                } else {
-                    if (scenarioDescriptionRegex) {
-                        scenarioName = scenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
-                    }
-                    scenarios.push(`${lineDelimiter} ${featureChild.scenario.keyword}: ${scenarioName}`);
-                }
-
-                let scenarioSteps = '';
-
-                featureChild.scenario.steps.forEach((step) => {
-                    scenarioSteps = scenarioSteps + stepDelimiter + step.keyword + step.text + lineDelimiter;
-                    if (step.dataTable) {
-                        step.dataTable.rows.forEach((row) => {
-                            row.cells.forEach((cell) => {
-                                scenarioSteps = `${scenarioSteps + stepDelimiter}|${cell.value}`;
-                            });
-                            scenarioSteps = `${scenarioSteps}|${lineDelimiter}`;
-                        });
-                    }
-                });
-
-                const output: PARSED_DATA[] = scenarios.map((scenario, index) => {
-                    if (examples.length > 0) {
-                        let exampleScenarioSteps = '';
-                        exampleScenarioSteps += `${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}`;
-                        Object.keys(examples[index]).forEach((key) => {
-                            exampleScenarioSteps += `|${key.trim()}`;
-                        });
-                        exampleScenarioSteps += `|${lineDelimiter}${stepDelimiter}`;
-                        Object.values(examples[index]).forEach((value: string) => {
-                            exampleScenarioSteps += `|${value.trim()}`;
-                        });
-                        exampleScenarioSteps += `|${lineDelimiter}`;
-                        return {
-                            tags: (`${featureLevelTags + scenarioLevelTags}`).trim(),
-                            scenarioType: scenario.trim().substring(0, scenario.trim().indexOf(':')).trim(),
-                            scenarioName: scenario.trim().substring(scenario.trim().indexOf(':') + 1).trim(),
-                            scenarioSteps: backgroundSteps + scenarioSteps + exampleScenarioSteps
-                        }
-                    }
-                    return {
-                        tags: (`${featureLevelTags + scenarioLevelTags}`).trim(),
-                        scenarioType: scenario.trim().substring(0, scenario.trim().indexOf(':')).trim(),
-                        scenarioName: scenario.trim().substring(scenario.trim().indexOf(':') + 1).trim(),
-                        scenarioSteps: backgroundSteps + scenarioSteps
-                    }
-                });
-
-                parsedData.push(output);
-            }
-        });
-
+    if (duplicateScenarioNames.length > 0) {
+        logger.error('XRAY: Below are duplicate scenario names found');
+        duplicateScenarioNames.forEach((scenario, index) => logger.error(`${stepDelimiter} ${index + 1}. ${scenario}`));
+        throw new Error('XRAY: Fix the duplicate scenario names to proceed');
     }
-    return _.flattenDeep(parsedData);
+
+    const longScenarioNames = _.filter(scenarioNames, (name) => name.length > 250);
+
+    if (longScenarioNames.length > 0) {
+        logger.error('XRAY: Below scenario names have more than 250 characters');
+        longScenarioNames.forEach((scenario, index) => logger.error(`${stepDelimiter} ${index + 1}. ${scenario}`));
+        throw new Error('XRAY: Fix the scenario names to proceed');
+    }
 };
 
-const generateFeaturesToImport = async (featureFolderPath: string, featureFolderFilter: string, featureTagFilter: string, scenarioDescriptionRegex?: RegExp, scenarioDescriptionRegexReplaceValue?: string) => {
+/**
+ * Filters scenarios based on feature tags.
+ *
+ * @param {PARSED_DATA[]} parsedData - Parsed data containing scenarios.
+ * @param {string} featureTagFilter - Feature tag filter expression.
+ * @returns {PARSED_DATA[]} Filtered scenarios.
+ */
+const filterScenariosByTag = (parsedData: PARSED_DATA[], featureTagFilter: string): PARSED_DATA[] => {
+    const tagExpression = TagExpressionParser(featureTagFilter);
 
-    const featureFiles = await getAllFilesInDir(featureFolderPath, '.feature');
-    const filteredFiles = featureFiles.filter(file => file.includes(featureFolderFilter));
+    return parsedData.filter((data) => {
+        const tags = data.tags.split(' ');
+        return tagExpression.evaluate(tags);
+    });
+};
 
-    if (filteredFiles.length > 0) {
-        const parsedData = await parseFeatureFiles(filteredFiles.sort(), scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+/**
+ * Parses a feature file and extracts scenarios.
+ *
+ * @param {string} file - Path to the feature file.
+ * @param {RegExp} scenarioDescriptionRegex - Regex for scenario descriptions.
+ * @param {string} scenarioDescriptionRegexReplaceValue - Replacement value for scenario descriptions.
+ * @returns {Promise<PARSED_DATA[]>} Parsed data extracted from the feature file.
+ */
+// eslint-disable-next-line max-len
+export const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, scenarioDescriptionRegexReplaceValue: string): Promise<PARSED_DATA[]> => {
+    const raw = await readFile(file);
+    const gherkinDocument: GherkinDocument = parser.parse(raw.toString());
 
-        const scenarioName = parsedData.map((data) => data.scenarioName.replace(/[^a-zA-Z0-9-:,() ]/g, ''));
+    const featureLevelTags = gherkinDocument.feature.tags.map((tag) => tag.name).join(' ');
 
-        const nonUniqueScenarioName = _.filter(scenarioName, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
-        if (nonUniqueScenarioName.length > 0) {
-            logger.error('XRAY: Below are duplicate scenario name found');
-            nonUniqueScenarioName.map((scenario, index) => logger.error(`${stepDelimiter} ${index + 1}. ${scenario}`));
-            throw new Error('XRAY: Fix the duplicate scenario names to proceed');
-        }
+    const backgroundSteps = gherkinDocument.feature.children
+        .filter((child) => child.background)
+        .map((child) => child.background.steps.map((step) => `${step.keyword}${step.text}`).join(lineDelimiter))
+        .join(stepDelimiter);
 
-        const noScenarioNameLength = _.filter(scenarioName, (name) => name.length > 250);
-        if (noScenarioNameLength.length > 0) {
-            logger.error('XRAY: Below scenario names has more than 250 Char');
-            noScenarioNameLength.map((scenario, index) => logger.error(`${stepDelimiter} ${index + 1}. ${scenario}`));
-            throw new Error('XRAY: Fix the scenario names to proceed');
-        }
+    const parsedData: PARSED_DATA[] = [];
 
-        return _.remove(parsedData.map(data => {
-            const tags = data.tags.split(' ');
-            const tagExpression = TagExpressionParser(featureTagFilter);
-            if (tagExpression.evaluate(tags)) {
-                return data;
+    gherkinDocument.feature.children
+        .filter((child) => child.scenario)
+        .forEach((featureChild: FeatureChild) => {
+            const scenarioLevelTags = featureChild.scenario.tags.map((tag) => tag.name).join(' ');
+
+            const scenarios: PARSED_DATA[] = [];
+            const scenarioName = featureChild.scenario.name.toString().trim();
+
+            if (featureChild.scenario.examples.length > 0) {
+                featureChild.scenario.examples.forEach((example: Examples) => {
+                    const exampleHeader = example.tableHeader.cells.map((cell) => cell.value);
+
+                    example.tableBody.forEach((body) => {
+                        const exampleBody = body.cells.map((cell) => cell.value);
+
+                        const exampleObject = {};
+                        exampleHeader.forEach((header, index) => {
+                            exampleObject[header] = exampleBody[index];
+                        });
+
+                        let updatedScenarioName = scenarioName
+                            .replace(/\(Example - [^)]+\)/g, `(Example - ${JSON.stringify(exampleObject)})`)
+                            .replace(/[{}]/g, '');
+                        if (scenarioDescriptionRegex) {
+                            updatedScenarioName = updatedScenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                        }
+
+                        const exampleScenarioSteps = `${stepDelimiter}${lineDelimiter}${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}|${exampleHeader.join('|')}|${lineDelimiter}${stepDelimiter}|${exampleBody.join('|')}|${lineDelimiter}`;
+
+                        const data: PARSED_DATA = {
+                            tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
+                            scenarioType: featureChild.scenario.keyword,
+                            scenarioName: updatedScenarioName.trim(),
+                            scenarioSteps: backgroundSteps + getScenarioStepsText(featureChild.scenario.steps) + exampleScenarioSteps
+                        };
+
+                        scenarios.push(data);
+                    });
+                });
             } else {
-                return undefined;
-            }
-        }));
+                let updatedScenarioName = scenarioName;
+                if (scenarioDescriptionRegex) {
+                    updatedScenarioName = updatedScenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
+                }
+                const data: PARSED_DATA = {
+                    tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
+                    scenarioType: featureChild.scenario.keyword,
+                    scenarioName: updatedScenarioName.trim(),
+                    scenarioSteps: backgroundSteps + getScenarioStepsText(featureChild.scenario.steps)
+                };
 
-    } else {
+                scenarios.push(data);
+            }
+
+            parsedData.push(...scenarios);
+        });
+
+    return parsedData;
+};
+
+/**
+ * Generates a list of features to import based on various filters.
+ *
+ * @param {string} featureFolderPath - Path to the folder containing feature files.
+ * @param {string} featureFolderFilter - Filter for feature file names.
+ * @param {string} featureTagFilter - Feature tag filter expression.
+ * @param {RegExp} scenarioDescriptionRegex - Regex for scenario descriptions.
+ * @param {string} scenarioDescriptionRegexReplaceValue - Replacement value for scenario descriptions.
+ * @returns {Promise<PARSED_DATA[]>} List of features to import.
+ */
+const generateFeaturesToImport = async (
+    featureFolderPath: string,
+    featureFolderFilter: string,
+    featureTagFilter: string,
+    scenarioDescriptionRegex?: RegExp,
+    scenarioDescriptionRegexReplaceValue?: string
+): Promise<PARSED_DATA[]> => {
+    const featureFiles = await getAllFilesInDir(featureFolderPath, '.feature');
+    const filteredFiles = featureFiles.filter((file) => file.includes(featureFolderFilter));
+
+    if (filteredFiles.length === 0) {
         logger.error('XRAY: Given path does not have any feature files');
         throw new Error('XRAY: Fix the feature folder path to proceed');
     }
-};
 
+    const parsedData = await Promise.all(
+        filteredFiles.map(async (file) => parseFeatureFile(file, scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue))
+    );
+
+    const flattenedParsedData = _.flattenDeep(parsedData);
+
+    validateScenarioNames(flattenedParsedData);
+
+    return filterScenariosByTag(flattenedParsedData, featureTagFilter);
+};
 
 export default generateFeaturesToImport;
