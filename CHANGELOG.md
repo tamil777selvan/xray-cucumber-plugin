@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented below, following [Semantic Versioning](http://semver.org/) guidelines.
 
+## [2.0.1] - 2023-10-09
+### Added
+- Added support for ESM (ECMAScript Modules) and CJS (CommonJS Modules).
+- Implemented unit tests for improved code reliability.
+
 ## [2.0.0] - 2023-06-30
 ### Added
 - Support for JIRA Token for enhanced security in authentication.

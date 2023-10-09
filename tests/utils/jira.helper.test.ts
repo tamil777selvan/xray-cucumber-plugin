@@ -97,9 +97,6 @@ const mockPost = vi.fn().mockImplementation((url) => {
 		return Promise.resolve();
 	}
 
-	if (pathName === `/rest/raven/1.0/api/testrun/${xrayTestExecutionIdFieldValue}/status` && uri.search === `?status=${xrayTestStatus}`) {
-		return Promise.resolve([]);
-	}
 	return Promise.reject();
 });
 
@@ -111,6 +108,11 @@ const mockPut = vi.fn().mockImplementation((url) => {
 	if (pathName === `/rest/api/2/issue/${issueId}`) {
 		return Promise.resolve();
 	}
+
+	if (pathName === `/rest/raven/1.0/api/testrun/${xrayTestExecutionIdFieldValue}/status` && uri.search === `?status=${xrayTestStatus}`) {
+		return Promise.resolve([]);
+	}
+
 	return Promise.reject();
 });
 
@@ -294,7 +296,7 @@ describe.only('jiraHelper', () => {
 
 	it('should update result for test execution', async () => {
 		await updateExecutionResult(jiraProtocol, jiraHost, xrayTestExecutionIdFieldValue, xrayTestStatus, requestHeaders);
-		expect(requestHelper.post).toHaveBeenCalledWith(
+		expect(requestHelper.put).toHaveBeenCalledWith(
 			`${jiraProtocol}://${jiraHost}/rest/raven/1.0/api/testrun/${xrayTestExecutionIdFieldValue}/status?status=${xrayTestStatus}`,
 			{},
 			requestHeaders

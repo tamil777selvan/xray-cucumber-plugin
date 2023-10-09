@@ -170,7 +170,10 @@ export const getXrayFieldIds = async (jiraProtocol: string, jiraHost: string, ji
 
     const xrayCucumberTestFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:automated-test-type-custom-field');
 
-    const xrayCucumberTestTypeMappings = getXrayCucumberTestTypeMappings(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:automated-test-type-custom-field');
+    const xrayCucumberTestTypeMappings = getXrayCucumberTestTypeMappings(
+        xrayTestIdCreateMetaResponse,
+        'com.xpandit.plugins.xray:automated-test-type-custom-field'
+    );
 
     const xrayCucumberTestStepFieldId = getFieldIdByCustomSchema(xrayTestIdCreateMetaResponse, 'com.xpandit.plugins.xray:steps-editor-custom-field');
 
@@ -384,5 +387,5 @@ export const updateExecutionResult = async (
     requestHeaders: object
 ) => {
     const url = `${jiraProtocol}://${jiraHost}/rest/raven/1.0/api/testrun/${xrayTestExecutionId}/status?status=${xrayTestStatus}`;
-    await requestHelper.post(url, {}, requestHeaders);
+    await requestHelper.put(url, {}, requestHeaders);
 };
