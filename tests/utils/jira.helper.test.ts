@@ -116,7 +116,7 @@ const mockPut = vi.fn().mockImplementation((url) => {
 	return Promise.reject();
 });
 
-describe.only('jiraHelper', () => {
+describe('jiraHelper', () => {
 	beforeAll(() => {
 		vi.spyOn(requestHelper, 'get').mockImplementation(mockGet);
 		vi.spyOn(requestHelper, 'post').mockImplementation(mockPost);
