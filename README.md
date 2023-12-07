@@ -70,7 +70,7 @@ import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
 const options = {
 	featureFolderPath: './features',
-	featureFolderFilter: 'OptimisedE2EPack',
+	featureFolderFilter: 'OptimizedE2EPack',
 	featureTagFilter: '',
 	scenarioDescriptionRegex: /TC_\d\d /gm,
 	scenarioDescriptionRegexReplaceValue: 'XCP ',
@@ -196,12 +196,12 @@ import XrayCucumberPlugin from 'xray-cucumber-plugin'
 
 const options = {
 	featureFolderPath: './features',
-	featureFolderFilter: 'OptimisedE2EPack',
+	featureFolderFilter: 'OptimizedE2EPack',
 	scenarioDescriptionRegex: /TC_\d\d /gm,
 	scenarioDescriptionRegexReplaceValue: '',
 }
 
-XrayCucumberPlugin.lintFeatureFiles(options);
+void XrayCucumberPlugin.lintFeatureFiles(options);
 ```
 
 ### Exposed Options (lintFeatureFiles Method)

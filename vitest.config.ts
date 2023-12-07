@@ -12,12 +12,19 @@ export default defineConfig({
 			enabled: true,
 			provider: 'v8',
 			exclude: ['**/*.test.ts'],
-			lines: 96,
-			functions: 91,
-			statements: 96,
-			branches: 91,
+			all: false,
+			thresholds: {
+				lines: 96.97,
+				functions: 97.22,
+				statements: 96.97,
+				branches: 91.42
+			},
 			reportsDirectory: 'reports/coverage'
 		},
-		singleThread: true
+		poolOptions: {
+			threads: {
+				singleThread: true
+			}
+		}
 	}
 });

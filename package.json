@@ -1,6 +1,6 @@
 {
 	"name": "xray-cucumber-plugin",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "Automate XRAY integration for Cucumber Test Cases in your projects with ease. Seamlessly interact with XRAY and Jira APIs to streamline test management.",
 	"type": "module",
 	"main": "dist/cjs/index.js",
@@ -31,21 +31,21 @@
 	"dependencies": {
 		"@cucumber/gherkin": "^27.0.0",
 		"@cucumber/messages": "^22.0.0",
-		"@cucumber/tag-expressions": "^5.0.6",
-		"axios": "^1.5.1",
-		"axios-retry": "^3.8.0",
+		"@cucumber/tag-expressions": "^6.0.0",
+		"axios": "^1.6.2",
+		"axios-retry": "^4.0.0",
 		"lodash": "^4.17.21"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.199",
-		"@types/node": "^20.8.0",
-		"@typescript-eslint/eslint-plugin": "^6.7.3",
-		"@typescript-eslint/parser": "^6.7.3",
-		"@vitest/coverage-v8": "^0.34.6",
-		"eslint": "^8.50.0",
+		"@types/lodash": "^4.14.202",
+		"@types/node": "^20.10.4",
+		"@typescript-eslint/eslint-plugin": "^6.13.2",
+		"@typescript-eslint/parser": "^6.13.2",
+		"@vitest/coverage-v8": "^1.0.2",
+		"eslint": "^8.55.0",
 		"pre-commit": "^1.2.2",
 		"ts-node": "^10.9.1",
-		"vitest": "^0.34.6"
+		"vitest": "^1.0.2"
 	},
 	"keywords": [
 		"xray",

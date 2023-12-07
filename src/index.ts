@@ -94,7 +94,7 @@ const init = async (options: INIT_OPTIONS): Promise<void | Error> => {
             await syncTestSetMappings(opts);
         }
     } catch (error) {
-        return error;
+        return error.message;
     }
 };
 
@@ -122,7 +122,7 @@ const updateTestExecutionResults = async (options: TEST_EXECUTION_OPTION): Promi
 
         await _updateTestExecutionResults(opts);
     } catch (error) {
-        return error;
+        return error.message;
     }
 };
 
@@ -137,7 +137,8 @@ const lintFeatureFiles = async (options: LINT_OPTIONS): Promise<void> => {
         const defaults = {
             featureFolderFilter: '/',
             scenarioDescriptionRegex: undefined,
-            scenarioDescriptionRegexReplaceValue: undefined
+            scenarioDescriptionRegexReplaceValue: undefined,
+            featureTagFilter: ''
         };
 
         const inputOptions = {
@@ -147,12 +148,13 @@ const lintFeatureFiles = async (options: LINT_OPTIONS): Promise<void> => {
         await generateFeaturesToImport(
             inputOptions.featureFolderPath,
             inputOptions.featureFolderFilter,
+            inputOptions.featureTagFilter,
             inputOptions.scenarioDescriptionRegex,
             inputOptions.scenarioDescriptionRegexReplaceValue
         );
     } catch (error) {
         /* eslint no-console: "off" */
-        console.error(error);
+        console.error(error.message);
         process.exit(1);
     }
 };
