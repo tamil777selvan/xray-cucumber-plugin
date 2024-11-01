@@ -1,20 +1,20 @@
 {
-	"compilerOptions": {
-		"baseUrl": ".",
-		"allowJs": true,
-		"declaration": true,
-		"declarationMap": true,
-		"resolveJsonModule": true,
-		"removeComments": false,
-		"strictFunctionTypes": false,
-		"experimentalDecorators": true,
-		"esModuleInterop": true,
-		"moduleResolution": "Node",
-		"module": "ESNext",
-		"outDir": "./dist",
-		"skipDefaultLibCheck": true,
-		"skipLibCheck": true
-	},
-	"include": ["src/**/*.ts"],
-	"exclude": ["node_modules"]
+    "compilerOptions": {
+        "baseUrl": ".",
+        "allowJs": true,
+        "declaration": true,
+        "declarationMap": true,
+        "resolveJsonModule": true,
+        "removeComments": false,
+        "strictFunctionTypes": false,
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "moduleResolution": "Node",
+        "module": "ESNext",
+        "outDir": "./dist",
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"]
 }

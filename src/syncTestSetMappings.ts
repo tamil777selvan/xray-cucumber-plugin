@@ -60,7 +60,7 @@ export const syncTestSetMappings = async (options: INIT_OPTIONS & XRAY_FIELD_IDS
         const testSetMapping = generateTestSetMapping(options.testSetMappingDetails, existingTickets);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for await (const [testSetName, value] of Object.entries(testSetMapping)) {
+        for (const [testSetName, value] of Object.entries(testSetMapping)) {
             let mappedData = [];
             const testSetId = _.get(value, 'testSetId');
 
@@ -78,7 +78,7 @@ export const syncTestSetMappings = async (options: INIT_OPTIONS & XRAY_FIELD_IDS
                 throw new Error('testSetId provided in testSetMappingDetails should be an array & should not be empty');
             }
 
-            for await (const data of mappedData) {
+            for (const data of mappedData) {
                 const body = {
                     update: {
                         [options.xrayTestSetFieldId]: [

@@ -26,7 +26,12 @@ interface CreateMetaResponse {
     isLast: boolean;
     values: {
         required: boolean;
-        schema: { type: string; system?: string; custom?: string; customId?: number };
+        schema: {
+            type: string;
+            system?: string;
+            custom?: string;
+            customId?: number;
+        };
         name: string;
         fieldId: string;
         hasDefaultValue: boolean;
@@ -226,9 +231,10 @@ export const getExistingTickets = async (
     requestHeaders: object
 ): Promise<EXISTING_TICKET[]> => {
     const url = `${jiraProtocol}://${jiraHost}/rest/api/2/search`;
+    const fields = ['issuetype', 'status', 'summary', 'labels', xrayCucumberTestStepFieldId];
     const body = {
         jql: `project = ${jiraProject} AND issuetype = '${xrayTestIssueType}'`,
-        fields: ['issuetype', 'status', 'summary', 'labels', xrayCucumberTestFieldId, xrayCucumberTestStepFieldId],
+        fields: _.isEmpty(xrayCucumberTestFieldId) ? fields : fields.push(xrayCucumberTestFieldId),
         maxResults: 1000,
         startAt: 0
     };
@@ -252,7 +258,7 @@ export const getExistingTickets = async (
     return Promise.resolve(
         _.remove(
             issues.map((issue) => {
-                if (issue.fields[xrayCucumberTestFieldId]) {
+                if (issue.fields[xrayCucumberTestStepFieldId]) {
                     return {
                         key: issue.key,
                         issueId: issue.id,
@@ -263,7 +269,7 @@ export const getExistingTickets = async (
                             .trim()
                             .replace(/[^a-zA-Z0-9-:,() ]/g, ''),
                         labels: issue.fields.labels,
-                        xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId].value,
+                        xrayCucumberTestType: issue.fields[xrayCucumberTestFieldId]?.value || 'Cucumber Scenario',
                         xrayCucumberTestStep: issue.fields[xrayCucumberTestStepFieldId]
                     };
                 }

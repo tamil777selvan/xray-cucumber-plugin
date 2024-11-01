@@ -25,28 +25,28 @@ const log = (level: string, msg: any) => {
  */
 const logger = {
     /**
-	 * Logs an informational message.
-	 *
-	 * @param {any} msg - The message to log.
-	 */
+     * Logs an informational message.
+     *
+     * @param {any} msg - The message to log.
+     */
     info: (msg: any) => log('info', msg),
     /**
-	 * Logs an error message.
-	 *
-	 * @param {any} msg - The error message to log.
-	 */
+     * Logs an error message.
+     *
+     * @param {any} msg - The error message to log.
+     */
     error: (msg: any) => log('error', msg),
     /**
-	 * Logs a warning message.
-	 *
-	 * @param {any} msg - The warning message to log.
-	 */
+     * Logs a warning message.
+     *
+     * @param {any} msg - The warning message to log.
+     */
     warn: (msg: any) => log('warn', msg),
     /**
-	 * Logs a debug message if the 'XRAY_CUCUMBER_PLUGIN_DEBUG' environment variable is set.
-	 *
-	 * @param {any} msg - The debug message to log.
-	 */
+     * Logs a debug message if the 'XRAY_CUCUMBER_PLUGIN_DEBUG' environment variable is set.
+     *
+     * @param {any} msg - The debug message to log.
+     */
     debug: (msg: any) => {
         if (process.env.XRAY_CUCUMBER_PLUGIN_DEBUG) {
             log('debug', msg);

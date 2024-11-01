@@ -18,7 +18,7 @@ const parseCucumberReports = async (jsonReportFolderPath: string): Promise<objec
         const files = await getAllFilesInDir(jsonReportFolderPath, '.json');
         const results = {};
 
-        for await (const file of files) {
+        for (const file of files) {
             const raw = await readFile(file);
             JSON.parse(raw.toString()).forEach((data: any) => {
                 const elements = _.get(data, 'elements');
@@ -85,7 +85,7 @@ export const updateTestExecutionResults = async (options: TEST_EXECUTION_OPTION 
             )
         );
 
-        const optimisedExistingTickets = existingTickets.map((ticket) => {
+        const optimizedExistingTickets = existingTickets.map((ticket) => {
             const obj = {};
             obj[ticket.summary.toString().replace(/[^a-zA-Z0-9-:,()]/g, '')] = ticket.key;
             return obj;
@@ -94,22 +94,22 @@ export const updateTestExecutionResults = async (options: TEST_EXECUTION_OPTION 
         // Get all execution Id's
         const executionIds = [];
 
-        for await (const executionId of options.testExecutionIds) {
+        for (const executionId of options.testExecutionIds) {
             executionIds.push(
                 await getTestExecutionIds(options.jiraProtocol, options.jiraHost, executionId, options.xrayTestExecutionFieldId, options.headers)
             );
         }
 
-        for await (const [key, value] of Object.entries(_.head(testExecutionResults))) {
+        for (const [key, value] of Object.entries(_.head(testExecutionResults))) {
             const scenarioName = key;
             const status = value;
 
-            const optimisedExecutionIds = _.flattenDeep(executionIds).map((id) => _.invert(id));
+            const optimizedExecutionIds = _.flattenDeep(executionIds).map((id) => _.invert(id));
 
-            const ticketId = _.values(_.find(optimisedExistingTickets, scenarioName.replace(/[^a-zA-Z0-9-:,()]/g, '')));
+            const ticketId = _.values(_.find(optimizedExistingTickets, scenarioName.replace(/[^a-zA-Z0-9-:,()]/g, '')));
 
             if (ticketId.length === 1) {
-                const executionId = _.remove(_.keys(_.find(optimisedExecutionIds, ticketId.toString())), (val) => val !== ticketId.toString());
+                const executionId = _.remove(_.keys(_.find(optimizedExecutionIds, ticketId.toString())), (val) => val !== ticketId.toString());
 
                 if (executionId.length === 1) {
                     await updateExecutionResult(options.jiraProtocol, options.jiraHost, executionId.toString(), status, options.headers);
