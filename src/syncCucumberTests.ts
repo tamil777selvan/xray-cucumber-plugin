@@ -59,17 +59,24 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
                         summary: scenarioName,
                         labels,
                         [options.xrayTestTypeFieldId]: { id: options.xrayTestTypeId },
-                        [options.xrayCucumberTestFieldId]: { id: options.xrayCucumberTestTypeMappings[scenarioType] },
-                        [options.xrayCucumberTestStepFieldId]: scenarioSteps
+                        [options.xrayCucumberTestStepFieldId]: scenarioSteps,
+                        ...(options.xrayCucumberTestFieldId && {
+                            [options.xrayCucumberTestFieldId]: {
+                                id: options.xrayCucumberTestTypeMappings[scenarioType]
+                            }
+                        })
                     }
                 };
+
                 const response = await createNewTicket(options.jiraProtocol, options.jiraHost, body, options.headers);
                 logger.info(response);
             } else if (isTicketExists.length === 1) {
                 // Update existing Jira ticket if only one matching ticket exists
                 const existingTicket = isTicketExists[0];
 
-                const labelsToRemove: { add?: string; remove?: string }[] = _.flattenDeep(existingTicket.labels).map((label) => ({ remove: label }));
+                const labelsToRemove: { add?: string; remove?: string }[] = _.flattenDeep(existingTicket.labels).map((label) => ({
+                    remove: label
+                }));
 
                 const existingLabels = _.flattenDeep(existingTicket.labels).sort();
 
@@ -80,13 +87,18 @@ export const syncCucumberTests = async (options: INIT_OPTIONS & XRAY_FIELD_IDS):
                 if (!_.isEqual(labels, existingLabels) || !_.isEqual([scenarioSteps], existingSteps) || !_.isEqual([scenarioType], existingScenarioType)) {
                     const body = {
                         fields: {
-                            [options.xrayCucumberTestFieldId]: { id: options.xrayCucumberTestTypeMappings[scenarioType] },
-                            [options.xrayCucumberTestStepFieldId]: scenarioSteps
+                            [options.xrayCucumberTestStepFieldId]: scenarioSteps,
+                            ...(options.xrayCucumberTestFieldId && {
+                                [options.xrayCucumberTestFieldId]: {
+                                    id: options.xrayCucumberTestTypeMappings[scenarioType]
+                                }
+                            })
                         },
                         update: {
-                            labels: _.union(labelsToRemove, labelsToAdd)
+                            labels: Array.from(new Set([...labelsToRemove, ...labelsToAdd]))
                         }
                     };
+
                     await updateExistingTicket(options.jiraProtocol, options.jiraHost, existingTicket.key, body, options.headers);
                     logger.info(`XRAY: Existing ticket ${existingTicket.key} got updated`);
                 } else {

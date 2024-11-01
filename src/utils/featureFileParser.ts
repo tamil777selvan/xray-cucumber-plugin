@@ -40,10 +40,12 @@ const getDataTableText = (rows: readonly TableRow[]): string =>
  */
 const getScenarioStepsText = (steps: readonly Step[]): string =>
     steps
-        .map((step) =>
-            step.dataTable
-                ? `${stepDelimiter}${step.keyword}${step.text}${lineDelimiter}${getDataTableText(step.dataTable.rows)}`
-                : `${stepDelimiter}${step.keyword}${step.text}`)
+        .map((step) => {
+            if (step.dataTable) {
+                return `${stepDelimiter}${step.keyword}${step.text}${lineDelimiter}${getDataTableText(step.dataTable.rows)}`;
+            }
+            return `${stepDelimiter}${step.keyword}${step.text}`;
+        })
         .join(lineDelimiter);
 
 /**
@@ -98,7 +100,11 @@ const filterScenariosByTag = (parsedData: PARSED_DATA[], featureTagFilter: strin
  * @returns {Promise<PARSED_DATA[]>} Parsed data extracted from the feature file.
  */
 // eslint-disable-next-line max-len
-export const parseFeatureFile = async (file: string, scenarioDescriptionRegex: RegExp, scenarioDescriptionRegexReplaceValue: string): Promise<PARSED_DATA[]> => {
+export const parseFeatureFile = async (
+    file: string,
+    scenarioDescriptionRegex: RegExp,
+    scenarioDescriptionRegexReplaceValue: string
+): Promise<PARSED_DATA[]> => {
     const raw = await readFile(file);
     const gherkinDocument: GherkinDocument = parser.parse(raw.toString());
 
@@ -138,7 +144,10 @@ export const parseFeatureFile = async (file: string, scenarioDescriptionRegex: R
                             updatedScenarioName = updatedScenarioName.replace(scenarioDescriptionRegex, scenarioDescriptionRegexReplaceValue);
                         }
 
-                        const exampleScenarioSteps = `${stepDelimiter}${lineDelimiter}${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}|${exampleHeader.join('|')}|${lineDelimiter}${stepDelimiter}|${exampleBody.join('|')}|${lineDelimiter}`;
+                        // eslint-disable-next-line max-len
+                        const exampleScenarioSteps = `${stepDelimiter}${lineDelimiter}${stepDelimiter}Examples:${lineDelimiter}${stepDelimiter}|${exampleHeader.join(
+                            '|'
+                        )}|${lineDelimiter}${stepDelimiter}|${exampleBody.join('|')}|${lineDelimiter}`;
 
                         const data: PARSED_DATA = {
                             tags: `${featureLevelTags} ${scenarioLevelTags}`.trim(),
